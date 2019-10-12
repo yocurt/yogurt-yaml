@@ -7,6 +7,7 @@ use yaml_rust::YamlLoader;
 
 pub struct YogurtYaml{
     pairs: Vec<RegexPair>,
+    combined_pair: RegexPair,
     regex_set: RegexSet,
 }
 
@@ -18,15 +19,22 @@ struct RegexPair{
 impl YogurtYaml{
     pub fn new(indicators: Vec<& str>) -> YogurtYaml{
         let pairs = create_pairs(&indicators);
+        let combined_pair = create_combined_pair(&indicators);
         return YogurtYaml{
             regex_set: get_regexset(&pairs),
             pairs: pairs,
+            combined_pair: combined_pair,
         };
     }
 
     pub fn check(&self, s: &str) -> bool {
         return self.regex_set.is_match(s);
     }
+}
+
+fn create_combined_pair(strs: &Vec<& str>) -> RegexPair {
+    let combined_pair_str = format!(r"(?P<ident>{})\[(?P<content>[^\]]*)", "ID");
+    return create_pair(&combined_pair_str);
 }
 
 fn create_pairs(strs: &Vec<& str>) -> Vec<RegexPair> {
@@ -38,7 +46,7 @@ fn create_pairs(strs: &Vec<& str>) -> Vec<RegexPair> {
 }
 
 fn create_pair(s: &str) -> RegexPair {
-    let re_str = format!(r"{}\[(?P<content>[^\]]*)", s);
+    let re_str = format!(r"(?P<ident>{})\[(?P<content>[^\]]*)", s);
     let re = Regex::new(&re_str).unwrap();
     return RegexPair{indicator: s.to_string(),regex: re};
 }
@@ -69,7 +77,7 @@ fn prettyfy(yaml_vec : Vec<String>) -> String {
 fn cut_yaml(reg: RegexPair, s: &String) -> Vec<String> {
     let mut v = Vec::new();
     for caps in reg.regex.captures_iter(&s){
-        let mut yaml_str: String = reg.indicator.to_string();
+        let mut yaml_str: String = caps["ident"].to_string();
         yaml_str.push_str(": ");
         yaml_str.push_str(&caps["content"]);
         v.push(yaml_str);
