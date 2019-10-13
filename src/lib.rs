@@ -13,7 +13,6 @@ pub struct YogurtYaml{
 
 pub struct Result{
     text: String,
-    path: String,
     start: usize,
     end: usize,
 }
@@ -101,13 +100,15 @@ fn cut_yaml(reg: RegexPair, s: &String) -> Vec<Result> {
 
         let result = check_nested(pos_start, &s, yaml_str);
 
-        v.push(Result{text: result, path: String::from(""), start: pos_start, end: pos_end});
+        v.push(Result{text: result, start: pos_start, end: pos_end});
     }
     return v;
 }
 
 fn check_nested(pos: usize, s: &String, yaml_str: String) -> String{
-    if yaml_str.contains('[') {
+    let reg = Regex::new(r#"(\[|\]|'|")"#).unwrap();
+
+    if reg.is_match(&yaml_str) {
         let start = pos;
         let mut len = 0;
         let mut bracket = 0;
@@ -231,9 +232,9 @@ mod tests {
     #[test]
     fn test_cut_yaml_escaped() {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
-        let result = cut_yaml(pair, &r#"other stuff ID[Test, \nTestContent: "]3]]"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
+        let result = cut_yaml(pair, &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, r#"ID: Test, \nTestContent: "]3]]""#);
+        assert_eq!(result[0].text, r#"ID: Test, \nTestContent: ']3]]'"#);
         assert_eq!(result[1].text, r#"REF: Test2, \nTestContent: [4]\n"#);
         assert_eq!(result[2].text, r#"ADD: Test3, TestContent: [[a,7],[a,d]]"#);
     }
