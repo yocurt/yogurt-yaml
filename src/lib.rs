@@ -36,6 +36,18 @@ impl YogurtYaml{
     pub fn check(&self, s: &str) -> bool {
         return self.regex_set.is_match(s);
     }
+
+    pub fn extract(&self, s: &str) -> Vec<Result> {
+        return cut_yaml(&self.combined_pair, &s.to_string());
+    }
+
+    pub fn verify(extracts: Vec<Result>) {
+        
+    }
+
+    pub fn combine(extracts: Vec<Result>) {
+
+    }
 }
 
 fn create_combined_pair(strs: &Vec<& str>) -> RegexPair {
@@ -70,7 +82,7 @@ fn get_yaml(pairs: Vec<RegexPair>, s: String) -> Vec<yaml_rust::Yaml> {
     let re = Regex::new(r"test").unwrap();
     let mut yaml_str: String = "".to_string();
     for pair in pairs{
-        let yaml_str_vec = cut_yaml(pair, &s);
+        let yaml_str_vec = cut_yaml(&pair, &s);
         yaml_str = prettyfy(yaml_str_vec);
     }
     return YamlLoader::load_from_str(&yaml_str).unwrap();
@@ -89,7 +101,7 @@ fn prettyfy(yaml_vec : Vec<Result>) -> String {
     return "Test".to_string();
 }
 
-fn cut_yaml(reg: RegexPair, s: &String) -> Vec<Result> {
+fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
     let mut v = Vec::new();
     for caps in reg.regex.captures_iter(&s){
         let mut yaml_str: String = caps["ident"].to_string();
@@ -171,14 +183,14 @@ mod tests {
     #[test]
     fn test_cut_yaml() {
         let pair = create_pair("ID");
-        let result = cut_yaml(pair, &"ID[Test]".to_string());
+        let result = cut_yaml(&pair, &"ID[Test]".to_string());
         assert_eq!(result.len(), 1);
     }
 
     #[test]
     fn test_cut_yaml_distraction() {
         let pair = create_pair("ID");
-        let result = cut_yaml(pair, &"other stuff ID[Test, TestContent: 3] more stuff".to_string());
+        let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more stuff".to_string());
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, "ID: Test, TestContent: 3");
         assert_eq!(result[0].start, 12);
@@ -189,7 +201,7 @@ mod tests {
     #[test]
     fn test_cut_yaml_multiple_entries() {
         let pair = create_pair("ID");
-        let result = cut_yaml(pair, &"other stuff ID[Test, TestContent: 3] more\n ID[Test2, TestContent: 4] stuID[Test3, TestContent: a7ad]ff".to_string());
+        let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more\n ID[Test2, TestContent: 4] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "ID: Test, TestContent: 3");
         assert_eq!(result[1].text, "ID: Test2, TestContent: 4");
@@ -199,7 +211,7 @@ mod tests {
     #[test]
     fn test_cut_yaml_multiple_lines() {
         let pair = create_pair("ID");
-        let result = cut_yaml(pair, &"other stuff ID[Test, \nTestContent: 3] more\n ID[Test2, \nTestContent: 4\n] stuID[Test3, TestContent: a7ad]ff".to_string());
+        let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n ID[Test2, \nTestContent: 4\n] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "ID: Test, \nTestContent: 3");
         assert_eq!(result[0].start, 12);
@@ -212,7 +224,7 @@ mod tests {
     #[test]
     fn test_cut_yaml_many_id_multiple_entries() {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
-        let result = cut_yaml(pair, &"other stuff ID[Test, TestContent: 3] more\n REF[Test, TestContent: 4] stuADD[Test3, TestContent: a7ad]ff".to_string());
+        let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more\n REF[Test, TestContent: 4] stuADD[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "ID: Test, TestContent: 3");
         assert_eq!(result[1].text, "REF: Test, TestContent: 4");
@@ -222,7 +234,7 @@ mod tests {
     #[test]
     fn test_cut_yaml_nested() {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
-        let result = cut_yaml(pair, &"other stuff ID[Test, \nTestContent: 3] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff".to_string());
+        let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "ID: Test, \nTestContent: 3");
         assert_eq!(result[1].text, "REF: Test2, \nTestContent: [4]\n");
@@ -232,7 +244,7 @@ mod tests {
     #[test]
     fn test_cut_yaml_escaped() {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
-        let result = cut_yaml(pair, &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
+        let result = cut_yaml(&pair, &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, r#"ID: Test, \nTestContent: ']3]]'"#);
         assert_eq!(result[1].text, r#"REF: Test2, \nTestContent: [4]\n"#);
