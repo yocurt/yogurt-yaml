@@ -1,0 +1,51 @@
+= Extract yaml
+
+ID[REQ::Extract_yaml]
+
+== from any file
+
+ID[::read_any_file]
+
+== alligned to yaml syntax
+
+ID[::syntax]
+
+== performant
+
+ID[::performance, required: optional]
+
+It could make sense to have to kinds of syntactical options.
+
+=== Bracket
+
+ID[::performance::syntax_bracket]
+
+==== Example evaluated
+
+All proper yaml is allowed
+
+```
+ID#[test, content: [A, "]]]}{[[]}}"]]
+```
+
+=== Closure
+
+ID[::performance::syntax_closure]
+
+
+==== Example unevaluated
+
+Everything according to yaml, exept the chars '{' and '}' is allowd.
+
+Allowed:
+
+```
+ID#{test, content: [A, "]]]"]}
+```
+
+Not allowed:
+
+```
+ID#{test, content: [{A: abc}, "{} }"]}
+```
+
