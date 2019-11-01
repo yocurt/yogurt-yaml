@@ -27,24 +27,24 @@ impl YogurtYaml {
     pub fn new(indicators: Vec<&str>) -> YogurtYaml {
         let pairs = create_pairs(&indicators);
         let combined_pair = create_combined_pair(&indicators);
-        return YogurtYaml {
+        YogurtYaml {
             regex_set: get_regexset(&pairs),
-            pairs: pairs,
-            combined_pair: combined_pair,
-        };
+            pairs,
+            combined_pair,
+        }
     }
 
     pub fn check(&self, s: &str) -> bool {
-        return self.regex_set.is_match(s);
+        self.regex_set.is_match(s)
     }
 
     pub fn extract(&self, s: &str) -> Vec<Result> {
-        return cut_yaml(&self.combined_pair, &s.to_string());
+        cut_yaml(&self.combined_pair, &s.to_string())
     }
 
-    pub fn verify(extracts: Vec<Result>) {}
+    pub fn verify(_extracts: Vec<Result>) {}
 
-    pub fn combine(extracts: Vec<Result>) {}
+    pub fn combine(_extracts: Vec<Result>) {}
 }
 
 fn create_combined_pair(strs: &Vec<&str>) -> RegexPair {
@@ -58,7 +58,7 @@ fn create_combined_pair(strs: &Vec<&str>) -> RegexPair {
     combined_pair_str.pop();
     combined_pair_str.push(')');
 
-    return create_pair(&combined_pair_str);
+    create_pair(&combined_pair_str)
 }
 
 fn create_pairs(strs: &Vec<&str>) -> Vec<RegexPair> {
@@ -66,27 +66,27 @@ fn create_pairs(strs: &Vec<&str>) -> Vec<RegexPair> {
     for s in strs {
         pairs.push(create_pair(s));
     }
-    return pairs;
+    pairs
 }
 
 // ID[regex, info: "(?P<ident>{})\[(?P<content>[^\]]*)"]
 fn create_pair(s: &str) -> RegexPair {
     let re_str = format!(r"(?P<ident>{})\[(?P<content>[^\]]*)", s);
     let re = Regex::new(&re_str).unwrap();
-    return RegexPair {
+    RegexPair {
         indicator: s.to_string(),
         regex: re,
-    };
+    }
 }
 
 fn get_yaml(pairs: Vec<RegexPair>, s: String) -> Vec<yaml_rust::Yaml> {
-    let re = Regex::new(r"test").unwrap();
+    let _re = Regex::new(r"test").unwrap();
     let mut yaml_str: String = "".to_string();
     for pair in pairs {
         let yaml_str_vec = cut_yaml(&pair, &s);
         yaml_str = prettyfy(yaml_str_vec);
     }
-    return YamlLoader::load_from_str(&yaml_str).unwrap();
+    YamlLoader::load_from_str(&yaml_str).unwrap()
 }
 
 fn get_regexset(pairs: &Vec<RegexPair>) -> RegexSet {
@@ -94,12 +94,11 @@ fn get_regexset(pairs: &Vec<RegexPair>) -> RegexSet {
     for pair in pairs {
         regs.push(pair.regex.to_string());
     }
-    let set = RegexSet::new(regs).unwrap();
-    return set;
+    RegexSet::new(regs).unwrap()
 }
 
-fn prettyfy(yaml_vec: Vec<Result>) -> String {
-    return "Test".to_string();
+fn prettyfy(_yaml_vec: Vec<Result>) -> String {
+    "Test".to_string()
 }
 
 fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
@@ -119,7 +118,7 @@ fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
             end: pos_end,
         });
     }
-    return v;
+    v
 }
 
 fn check_nested(pos: usize, s: &String, yaml_str: String) -> String {
@@ -141,16 +140,16 @@ fn check_nested(pos: usize, s: &String, yaml_str: String) -> String {
             } else if c == '\\' {
                 escaped = true;
             } else if c == '"' {
-                if string_open_s == false {
-                    if string_open_d == false {
+                if !string_open_s {
+                    if !string_open_d {
                         string_open_d = true;
                     } else {
                         string_open_d = false;
                     }
                 }
             } else if c == '\'' {
-                if string_open_d == false {
-                    if string_open_s == false {
+                if !string_open_d {
+                    if !string_open_s {
                         string_open_s = true;
                     } else {
                         string_open_s = false;
@@ -169,7 +168,7 @@ fn check_nested(pos: usize, s: &String, yaml_str: String) -> String {
         let result: String = s.chars().skip(start).take(len - 1).collect();
         return result.replacen("[", ": ", 1);
     }
-    return yaml_str;
+    yaml_str
 }
 
 #[cfg(test)]
