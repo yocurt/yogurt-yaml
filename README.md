@@ -1,5 +1,5 @@
 # yogurt-yaml
 
-[![Build Status](https://travis-ci.org/yocurt/yogurt-yaml.svg?branch=master)](https://travis-ci.org/yocurt/yogurt-yaml)
+![](https://github.com/yocurt/yogurt-yaml/workflows/Rust/badge.svg?branch=master)
 
 Get yaml from yogurt files
