@@ -2,15 +2,15 @@
 
 ID[REQ::Extract_yaml]
 
-== from any file
+== From any file
 
 ID[::read_any_file]
 
-== alligned to yaml syntax
+== Alligned to yaml syntax
 
 ID[::syntax]
 
-== performant
+== Performance
 
 ID[::performance, required: optional]
 
@@ -48,4 +48,15 @@ Not allowed:
 ```
 ID#{test, content: [{A: abc}, "{} }"]}
 ```
+
+
+== Ignore comment tags
+
+ID[::multiline_comment]
+
+To ignore multiline comments like #, //, /* at the beginning of a line within a ID.
+
+(Add to IMPL:)
+This could be done via ignoring the first word before the word before ":".
+
 

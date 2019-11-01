@@ -5,6 +5,7 @@ use regex::Regex;
 use regex::RegexSet;
 use yaml_rust::YamlLoader;
 
+// ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml{
     pairs: Vec<RegexPair>,
     combined_pair: RegexPair,
@@ -72,6 +73,7 @@ fn create_pairs(strs: &Vec<& str>) -> Vec<RegexPair> {
     return pairs;
 }
 
+// ID[regex, info: "(?P<ident>{})\[(?P<content>[^\]]*)"]
 fn create_pair(s: &str) -> RegexPair {
     let re_str = format!(r"(?P<ident>{})\[(?P<content>[^\]]*)", s);
     let re = Regex::new(&re_str).unwrap();
