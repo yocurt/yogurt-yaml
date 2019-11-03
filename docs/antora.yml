@@ -1,5 +1,5 @@
-name: yogurt
-title: Yogurt
+name: yogurt-yaml
+title: Yogurt Yaml
 version: master
 start_page: yogurt-yaml:extract_yaml.adoc
 nav:
