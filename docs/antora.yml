@@ -1,0 +1,6 @@
+name: yogurt
+title: Yogurt
+version: master
+start_page: ROOT:extract_yaml.adoc
+nav:
+- modules/ROOT/nav.adoc
