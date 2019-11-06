@@ -4,6 +4,7 @@ extern crate yaml_rust;
 use regex::Regex;
 use regex::RegexSet;
 use yaml_rust::YamlLoader;
+use yaml_rust::Yaml;
 
 // ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml {
@@ -21,6 +22,16 @@ pub struct Result {
 struct RegexPair {
     indicator: String,
     regex: Regex,
+}
+
+impl Result {
+    pub fn get_text(&self) -> &String {
+        return &self.text;
+    }
+
+    pub fn get_yaml(&self) -> Vec<Yaml> {
+        return YamlLoader::load_from_str(&self.text).unwrap();
+    }
 }
 
 impl YogurtYaml {
@@ -104,13 +115,17 @@ fn prettyfy(_yaml_vec: Vec<Result>) -> String {
 fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
     let mut v = Vec::new();
     for caps in reg.regex.captures_iter(&s) {
-        let mut yaml_str: String = caps["ident"].to_string();
+        let mut yaml_str: String = (&caps["ident"]).to_string();
         yaml_str.push_str(": ");
         yaml_str.push_str(&caps["content"]);
+        
         let pos_start = caps.get(0).unwrap().start();
         let pos_end = caps.get(0).unwrap().end();
 
-        let result = check_nested(pos_start, &s, yaml_str);
+        let mut result = check_nested(pos_start, &s, yaml_str);
+
+        result.insert(0, '{');
+        result.push('}');
 
         v.push(Result {
             text: result,
