@@ -3,8 +3,7 @@ extern crate yaml_rust;
 
 use regex::Regex;
 use regex::RegexSet;
-use yaml_rust::YamlLoader;
-use yaml_rust::Yaml;
+use yaml_rust::{Yaml, YamlLoader};
 
 // ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml {
@@ -268,6 +267,9 @@ mod tests {
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
         assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: [4]\n}"#);
-        assert_eq!(result[2].text, r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#);
+        assert_eq!(
+            result[2].text,
+            r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
+        );
     }
 }
