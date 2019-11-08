@@ -118,7 +118,7 @@ fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
         let mut yaml_str: String = (&caps["ident"]).to_string();
         yaml_str.push_str(": ");
         yaml_str.push_str(&caps["content"]);
-        
+
         let pos_start = caps.get(0).unwrap().start();
         let pos_end = caps.get(0).unwrap().end();
 
@@ -213,7 +213,7 @@ mod tests {
             &"other stuff ID[Test, TestContent: 3] more stuff".to_string(),
         );
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].text, "ID: Test, TestContent: 3");
+        assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
         assert_eq!(result[0].start, 12);
         assert_eq!(result[0].end, 35);
     }
@@ -223,9 +223,9 @@ mod tests {
         let pair = create_pair("ID");
         let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more\n ID[Test2, TestContent: 4] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, "ID: Test, TestContent: 3");
-        assert_eq!(result[1].text, "ID: Test2, TestContent: 4");
-        assert_eq!(result[2].text, "ID: Test3, TestContent: a7ad");
+        assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
+        assert_eq!(result[1].text, "{ID: Test2, TestContent: 4}");
+        assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
     }
 
     #[test]
@@ -233,11 +233,11 @@ mod tests {
         let pair = create_pair("ID");
         let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n ID[Test2, \nTestContent: 4\n] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, "ID: Test, \nTestContent: 3");
+        assert_eq!(result[0].text, "{ID: Test, \nTestContent: 3}");
         assert_eq!(result[0].start, 12);
         assert_eq!(result[0].end, 36);
-        assert_eq!(result[1].text, "ID: Test2, \nTestContent: 4\n");
-        assert_eq!(result[2].text, "ID: Test3, TestContent: a7ad");
+        assert_eq!(result[1].text, "{ID: Test2, \nTestContent: 4\n}");
+        assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
     }
 
     use crate::create_combined_pair;
@@ -246,9 +246,9 @@ mod tests {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
         let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more\n REF[Test, TestContent: 4] stuADD[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, "ID: Test, TestContent: 3");
-        assert_eq!(result[1].text, "REF: Test, TestContent: 4");
-        assert_eq!(result[2].text, "ADD: Test3, TestContent: a7ad");
+        assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
+        assert_eq!(result[1].text, "{REF: Test, TestContent: 4}");
+        assert_eq!(result[2].text, "{ADD: Test3, TestContent: a7ad}");
     }
 
     #[test]
@@ -256,9 +256,9 @@ mod tests {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
         let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff".to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, "ID: Test, \nTestContent: 3");
-        assert_eq!(result[1].text, "REF: Test2, \nTestContent: [4]\n");
-        assert_eq!(result[2].text, "ADD: Test3, TestContent: [[a,7],[a,d]]");
+        assert_eq!(result[0].text, "{ID: Test, \nTestContent: 3}");
+        assert_eq!(result[1].text, "{REF: Test2, \nTestContent: [4]\n}");
+        assert_eq!(result[2].text, "{ADD: Test3, TestContent: [[a,7],[a,d]]}");
     }
 
     #[test]
@@ -266,8 +266,8 @@ mod tests {
         let pair = create_combined_pair(&vec!["ID", "REF", "ADD"]);
         let result = cut_yaml(&pair, &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, r#"ID: Test, \nTestContent: ']3]]'"#);
-        assert_eq!(result[1].text, r#"REF: Test2, \nTestContent: [4]\n"#);
-        assert_eq!(result[2].text, r#"ADD: Test3, TestContent: [[a,7],[a,d]]"#);
+        assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
+        assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: [4]\n}"#);
+        assert_eq!(result[2].text, r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#);
     }
 }
