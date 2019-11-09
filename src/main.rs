@@ -40,7 +40,7 @@ fn main() {
         ap.parse_args_or_exit();
     }
 
-    let curt = YogurtYaml::new(vec!["ID", "REF", "ADD", "END"]);
+    let curt = YogurtYaml::new(&["ID", "REF", "ADD", "END"]);
 
     if pipe {
         pipe_data(curt);
