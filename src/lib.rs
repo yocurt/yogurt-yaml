@@ -53,7 +53,7 @@ impl YogurtYaml {
     }
 
     pub fn extract_clear(&self, s: &mut String) -> Vec<Result> {
-        let result = cut_yaml(&self.combined_pair, &s.to_string());
+        let result = cut_yaml(&self.combined_pair, &s);
         s.clear();
         result
     }
