@@ -23,7 +23,15 @@ fn pipe_data(curt: YogurtYaml) {
         results = curt.extract_clear(&mut line);
 
         for result in results {
-            writeln!(handle, "{:?}", &result.get_yaml()[0]).unwrap();
+            let text = result.get_text();
+            writeln!(handle, "- {}", text).unwrap();
+            // let yamls = result.get_yaml();
+            // for yaml in yamls {
+            //     let iter = yaml.as_hash().unwrap().iter();
+            //     for it in iter {
+            //         writeln!(handle, "{:?}", it).unwrap();
+            //     }
+            // }
         }
     }
 }
