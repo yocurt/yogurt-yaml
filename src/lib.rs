@@ -61,7 +61,7 @@ fn create_combined_pair(strs: &[&str]) -> RegexPair {
     let mut combined_pair_str: String = "(".to_string();
 
     for s in strs {
-        combined_pair_str.push_str(&s.to_string());
+        combined_pair_str.push_str(&s);
         combined_pair_str.push('|');
     }
 
