@@ -22,7 +22,7 @@ jobs:
       with:
         profile: minimal
         toolchain: ${{ matrix.rust }}
-        override: true
+        override: "true"
         components: rustfmt, clippy
 
     - uses: actions-rs/cargo@v1
