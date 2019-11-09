@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      name: checkout
+      name: "Checkout sources"
     - uses: actions-rs/toolchain@v1
       name: "Setup rust toolchain"
       with:
