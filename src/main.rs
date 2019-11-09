@@ -19,11 +19,12 @@ fn pipe_data(curt: YogurtYaml) {
         if n_bytes == 0 {
             break;
         }
-        results = curt.extract(&line);
+
+        results = curt.extract_clear(&mut line);
+
         for result in results {
             writeln!(handle, "{:?}", &result.get_yaml()[0]).unwrap();
         }
-        line.clear();
     }
 }
 
@@ -34,7 +35,7 @@ fn main() {
         let mut ap = ArgumentParser::new();
         ap.set_description("Parse yaml from text");
         ap.refer(&mut pipe)
-            .add_option(&["-p", "--pipe"], StoreTrue, "Pipe data");
+            .add_option(&["-p", "--pipe"], StoreTrue, "Pipe data through this application");
         ap.refer(&mut test)
             .add_option(&["-t", "--test"], StoreTrue, "Run a test");
         ap.parse_args_or_exit();
