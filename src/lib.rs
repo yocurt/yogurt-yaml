@@ -34,7 +34,7 @@ impl Result {
 }
 
 impl YogurtYaml {
-    pub fn new(indicators: Vec<&str>) -> YogurtYaml {
+    pub fn new(indicators: &[&str]) -> YogurtYaml {
         let pairs = create_pairs(&indicators);
         let combined_pair = create_combined_pair(&indicators);
         YogurtYaml {
