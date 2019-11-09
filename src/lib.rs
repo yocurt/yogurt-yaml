@@ -7,29 +7,29 @@ use yaml_rust::{Yaml, YamlLoader};
 
 // ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml {
-    pairs: Vec<RegexPair>,
+    // pairs: Vec<RegexPair>,
     combined_pair: RegexPair,
     regex_set: RegexSet,
 }
 
 pub struct Result {
     text: String,
-    start: usize,
-    end: usize,
+    // start: usize,
+    // end: usize,
 }
 
 struct RegexPair {
-    indicator: String,
+    // indicator: String,
     regex: Regex,
 }
 
 impl Result {
     pub fn get_text(&self) -> &String {
-        return &self.text;
+        &self.text
     }
 
     pub fn get_yaml(&self) -> Vec<Yaml> {
-        return YamlLoader::load_from_str(&self.text).unwrap();
+        YamlLoader::load_from_str(&self.text).unwrap()
     }
 }
 
@@ -39,7 +39,7 @@ impl YogurtYaml {
         let combined_pair = create_combined_pair(&indicators);
         YogurtYaml {
             regex_set: get_regexset(&pairs),
-            pairs,
+            // pairs,
             combined_pair,
         }
     }
@@ -57,7 +57,7 @@ impl YogurtYaml {
     pub fn combine(_extracts: Vec<Result>) {}
 }
 
-fn create_combined_pair(strs: &Vec<&str>) -> RegexPair {
+fn create_combined_pair(strs: &[&str]) -> RegexPair {
     let mut combined_pair_str: String = "(".to_string();
 
     for s in strs {
@@ -71,7 +71,7 @@ fn create_combined_pair(strs: &Vec<&str>) -> RegexPair {
     create_pair(&combined_pair_str)
 }
 
-fn create_pairs(strs: &Vec<&str>) -> Vec<RegexPair> {
+fn create_pairs(strs: &[&str]) -> Vec<RegexPair> {
     let mut pairs = Vec::new();
     for s in strs {
         pairs.push(create_pair(s));
@@ -84,22 +84,22 @@ fn create_pair(s: &str) -> RegexPair {
     let re_str = format!(r"(?P<ident>{})\[(?P<content>[^\]]*)", s);
     let re = Regex::new(&re_str).unwrap();
     RegexPair {
-        indicator: s.to_string(),
+        // indicator: s.to_string(),
         regex: re,
     }
 }
 
-fn get_yaml(pairs: Vec<RegexPair>, s: String) -> Vec<yaml_rust::Yaml> {
-    let _re = Regex::new(r"test").unwrap();
-    let mut yaml_str: String = "".to_string();
-    for pair in pairs {
-        let yaml_str_vec = cut_yaml(&pair, &s);
-        yaml_str = prettyfy(yaml_str_vec);
-    }
-    YamlLoader::load_from_str(&yaml_str).unwrap()
-}
+// fn get_yaml(pairs: Vec<RegexPair>, s: String) -> Vec<yaml_rust::Yaml> {
+//     let _re = Regex::new(r"test").unwrap();
+//     let mut yaml_str: String = "".to_string();
+//     for pair in pairs {
+//         let yaml_str_vec = cut_yaml(&pair, &s);
+//         yaml_str = prettyfy(yaml_str_vec);
+//     }
+//     YamlLoader::load_from_str(&yaml_str).unwrap()
+// }
 
-fn get_regexset(pairs: &Vec<RegexPair>) -> RegexSet {
+fn get_regexset(pairs: &[RegexPair]) -> RegexSet {
     let mut regs = Vec::new();
     for pair in pairs {
         regs.push(pair.regex.to_string());
@@ -107,11 +107,11 @@ fn get_regexset(pairs: &Vec<RegexPair>) -> RegexSet {
     RegexSet::new(regs).unwrap()
 }
 
-fn prettyfy(_yaml_vec: Vec<Result>) -> String {
-    "Test".to_string()
-}
+// fn prettyfy(_yaml_vec: Vec<Result>) -> String {
+//     "Test".to_string()
+// }
 
-fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
+fn cut_yaml(reg: &RegexPair, s: &str) -> Vec<Result> {
     let mut v = Vec::new();
     for caps in reg.regex.captures_iter(&s) {
         let mut yaml_str: String = (&caps["ident"]).to_string();
@@ -119,7 +119,7 @@ fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
         yaml_str.push_str(&caps["content"]);
 
         let pos_start = caps.get(0).unwrap().start();
-        let pos_end = caps.get(0).unwrap().end();
+        // let pos_end = caps.get(0).unwrap().end();
 
         let mut result = check_nested(pos_start, &s, yaml_str);
 
@@ -128,14 +128,14 @@ fn cut_yaml(reg: &RegexPair, s: &String) -> Vec<Result> {
 
         v.push(Result {
             text: result,
-            start: pos_start,
-            end: pos_end,
+            // start: pos_start,
+            // end: pos_end,
         });
     }
     v
 }
 
-fn check_nested(pos: usize, s: &String, yaml_str: String) -> String {
+fn check_nested(pos: usize, s: &str, yaml_str: String) -> String {
     let reg = Regex::new(r#"(\[|\]|'|")"#).unwrap();
 
     if reg.is_match(&yaml_str) {
@@ -213,8 +213,8 @@ mod tests {
         );
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
-        assert_eq!(result[0].start, 12);
-        assert_eq!(result[0].end, 35);
+        // assert_eq!(result[0].start, 12);
+        // assert_eq!(result[0].end, 35);
     }
 
     #[test]
@@ -233,8 +233,8 @@ mod tests {
         let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n ID[Test2, \nTestContent: 4\n] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "{ID: Test, \nTestContent: 3}");
-        assert_eq!(result[0].start, 12);
-        assert_eq!(result[0].end, 36);
+        // assert_eq!(result[0].start, 12);
+        // assert_eq!(result[0].end, 36);
         assert_eq!(result[1].text, "{ID: Test2, \nTestContent: 4\n}");
         assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
     }
