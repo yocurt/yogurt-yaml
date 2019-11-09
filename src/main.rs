@@ -34,8 +34,11 @@ fn main() {
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("Parse yaml from text");
-        ap.refer(&mut pipe)
-            .add_option(&["-p", "--pipe"], StoreTrue, "Pipe data through this application");
+        ap.refer(&mut pipe).add_option(
+            &["-p", "--pipe"],
+            StoreTrue,
+            "Pipe data through this application",
+        );
         ap.refer(&mut test)
             .add_option(&["-t", "--test"], StoreTrue, "Run a test");
         ap.parse_args_or_exit();
