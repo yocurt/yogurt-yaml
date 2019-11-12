@@ -6,16 +6,23 @@ use regex::RegexSet;
 use yaml_rust::{Yaml, YamlLoader};
 
 // ID[IMPL::yaml-extraction::]
-pub struct YogurtYaml {
-    // pairs: Vec<RegexPair>,
+pub struct YogurtYaml<'a> {
+    indicators: &'a [&'a str],
     combined_pair: RegexPair,
     regex_set: RegexSet,
 }
 
+enum State {
+    Open,
+    Closed,
+    Invalid,
+}
+
 pub struct Result {
     text: String,
-    // start: usize,
-    // end: usize,
+    state: State,
+    start: usize,
+    end: usize,
 }
 
 struct RegexPair {
@@ -33,13 +40,13 @@ impl Result {
     }
 }
 
-impl YogurtYaml {
-    pub fn new(indicators: &[&str]) -> YogurtYaml {
+impl<'a> YogurtYaml<'a> {
+    pub fn new(indicators: &'a [&'a str]) -> YogurtYaml<'a> {
         let pairs = create_pairs(&indicators);
         let combined_pair = create_combined_pair(&indicators);
         YogurtYaml {
+            indicators,
             regex_set: get_regexset(&pairs),
-            // pairs,
             combined_pair,
         }
     }
@@ -52,8 +59,18 @@ impl YogurtYaml {
         cut_yaml(&self.combined_pair, &s.to_string())
     }
 
+    pub fn extract2(&self, s: &str) -> Vec<Result> {
+        cut_yaml_idents(&self.indicators, &s.to_string())
+    }
+
     pub fn extract_clear(&self, s: &mut String) -> Vec<Result> {
         let result = cut_yaml(&self.combined_pair, &s);
+        s.clear();
+        result
+    }
+
+    pub fn extract2_clear(&self, s: &mut String) -> Vec<Result> {
+        let result = cut_yaml_idents(&self.indicators, &s.to_string());
         s.clear();
         result
     }
@@ -125,7 +142,7 @@ fn cut_yaml(reg: &RegexPair, s: &str) -> Vec<Result> {
         yaml_str.push_str(&caps["content"]);
 
         let pos_start = caps.get(0).unwrap().start();
-        // let pos_end = caps.get(0).unwrap().end();
+        let pos_end = caps.get(0).unwrap().end();
 
         let mut result = check_nested(pos_start, &s, yaml_str);
 
@@ -134,9 +151,169 @@ fn cut_yaml(reg: &RegexPair, s: &str) -> Vec<Result> {
 
         v.push(Result {
             text: result,
-            // start: pos_start,
-            // end: pos_end,
+            state: State::Closed,
+            start: pos_start,
+            end: pos_end,
         });
+    }
+    v
+}
+
+struct Identcheck<'a> {
+    ident: &'a str,
+    first_char: char,
+    begin_char: char,
+    end_char: char,
+    // mut:
+    semantic_position: SemanticPosition,
+    length: usize,
+    closures: i64,
+}
+
+enum SemanticPosition {
+    Out,
+    Ident,
+    In,
+    InSingleQuote,
+    InDoubleQuote,
+    InSingleQuoteEscaped,
+    InDoubleQuoteEscaped,
+    Done,
+}
+
+fn check_out(identcheck: &mut Identcheck, c: &char) {
+    if *c == identcheck.first_char {
+        identcheck.length = 1;
+        identcheck.semantic_position = SemanticPosition::Ident;
+    }
+}
+
+fn clean_up(identcheck: &mut Identcheck, c: &char) {
+    reset(identcheck);
+    check_out(identcheck, c); // Could be the start of a ident
+}
+
+fn reset(identcheck: &mut Identcheck) {
+    identcheck.length = 0;
+    identcheck.closures = 0;
+    identcheck.semantic_position = SemanticPosition::Out;
+}
+
+fn check_ident(identcheck: &mut Identcheck, c: &char) {
+    let check_size = identcheck.ident.len() < identcheck.length;
+    if check_size {
+        if identcheck.begin_char == *c {
+            identcheck.semantic_position = SemanticPosition::In;
+            identcheck.closures = 1;
+        } else {
+            clean_up(identcheck, c);
+        }
+    } else if *c != identcheck.ident.chars().nth(identcheck.length - 1).unwrap() {
+        clean_up(identcheck, c);
+    }
+}
+
+fn check_in(identcheck: &mut Identcheck, c: &char) {
+    let begin = identcheck.begin_char;
+    let end = identcheck.end_char;
+    if *c == begin {
+        identcheck.closures += 1;
+    } else if *c == end {
+        identcheck.closures -= 1;
+        check_end(identcheck);
+    } else if *c == '\'' {
+        identcheck.semantic_position = SemanticPosition::InSingleQuote;
+    } else if *c == '"' {
+        identcheck.semantic_position = SemanticPosition::InDoubleQuote;
+    }
+}
+
+fn check_single_quote(identcheck: &mut Identcheck, c: &char) {
+    if *c == '\'' {
+        identcheck.semantic_position = SemanticPosition::In;
+    } else if *c == '\\' {
+        identcheck.semantic_position = SemanticPosition::InSingleQuoteEscaped;
+    }
+}
+
+fn check_double_quote(identcheck: &mut Identcheck, c: &char) {
+    if *c == '\'' {
+        identcheck.semantic_position = SemanticPosition::In;
+    } else if *c == '\\' {
+        identcheck.semantic_position = SemanticPosition::InDoubleQuoteEscaped;
+    }
+}
+
+fn check_end(identcheck: &mut Identcheck) {
+    if identcheck.closures == 0 {
+        identcheck.semantic_position = SemanticPosition::Done;
+    }
+}
+
+fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
+    let mut v = Vec::new();
+    let mut identchecks = Vec::new();
+
+    for ident in idents {
+        identchecks.push(Identcheck {
+            ident,
+            first_char: ident.chars().nth(0).unwrap(),
+            begin_char: '[',
+            end_char: ']',
+            semantic_position: SemanticPosition::Out,
+            length: 0,
+            closures: 0,
+        });
+    }
+
+    for (i, c) in s.chars().enumerate() {
+        for identcheck in &mut identchecks {
+            identcheck.length += 1;
+            match identcheck.semantic_position {
+                SemanticPosition::Out => {
+                    check_out(identcheck, &c);
+                }
+                SemanticPosition::Ident => {
+                    check_ident(identcheck, &c);
+                }
+                SemanticPosition::In => {
+                    check_in(identcheck, &c);
+                }
+                SemanticPosition::InSingleQuote => {
+                    check_single_quote(identcheck, &c);
+                }
+                SemanticPosition::InDoubleQuote => {
+                    check_double_quote(identcheck, &c);
+                }
+                SemanticPosition::InSingleQuoteEscaped => {
+                    identcheck.semantic_position = SemanticPosition::InSingleQuote;
+                }
+                SemanticPosition::InDoubleQuoteEscaped => {
+                    identcheck.semantic_position = SemanticPosition::InDoubleQuote;
+                }
+                _ => {}
+            }
+            // Check identcheck to be done
+            match identcheck.semantic_position {
+                SemanticPosition::Done => {
+                    let pos_start = i - identcheck.length;
+                    let pos_end = i;
+                    let mut result_text: String =
+                        s.chars().skip(pos_start).take(pos_end - 1).collect();
+                    result_text = result_text.replacen(identcheck.begin_char, ": ", 1);
+                    result_text.insert(0, '{');
+                    result_text.push('}');
+                    v.push(Result {
+                        text: result_text,
+                        state: State::Closed,
+                        start: pos_start,
+                        end: pos_end,
+                    });
+                    reset(identcheck);
+                }
+                _ => {}
+            }
+        }
     }
     v
 }
@@ -203,10 +380,17 @@ mod tests {
     }
 
     use crate::cut_yaml;
+    use crate::cut_yaml_idents;
     #[test]
     fn test_cut_yaml() {
         let pair = create_pair("ID");
         let result = cut_yaml(&pair, &"ID[Test]".to_string());
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_cut_yaml2() {
+        let result = cut_yaml_idents(&["ID"], &"ID[Test]".to_string());
         assert_eq!(result.len(), 1);
     }
 
@@ -227,6 +411,15 @@ mod tests {
     fn test_cut_yaml_multiple_entries() {
         let pair = create_pair("ID");
         let result = cut_yaml(&pair, &"other stuff ID[Test, TestContent: 3] more\n ID[Test2, TestContent: 4] stuID[Test3, TestContent: a7ad]ff".to_string());
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
+        assert_eq!(result[1].text, "{ID: Test2, TestContent: 4}");
+        assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
+    }
+
+    #[test]
+    fn test_cut_yaml_multiple_entries2() {
+        let result = cut_yaml_idents(&["ID"], &"other stuff ID[Test, TestContent: 3] more\n ID[Test2, TestContent: 4] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
         assert_eq!(result[1].text, "{ID: Test2, TestContent: 4}");
