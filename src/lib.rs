@@ -417,8 +417,7 @@ mod tests {
 
     #[test]
     fn test_cut_yaml2() {
-        // FIXME: Space is required due to missed done check at the end of the stream of strings
-        let result = cut_yaml_idents(&["ID"], &"ID[Test] ".to_string());
+        let result = cut_yaml_idents(&["ID"], &"ID[Test]".to_string());
         assert_eq!(result.len(), 1);
     }
 
