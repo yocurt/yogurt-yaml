@@ -15,7 +15,6 @@ pub struct YogurtYaml<'a> {
 enum State {
     Open,
     Closed,
-    Invalid,
 }
 
 pub struct Result {
@@ -33,6 +32,20 @@ struct RegexPair {
 impl Result {
     pub fn get_text(&self) -> &String {
         &self.text
+    }
+
+    pub fn get_print(&self) -> String {
+        let mut result = self.text.clone();
+        result.push_str(" at ");
+        result.push_str(&self.start.to_string());
+        result.push_str(" -> ");
+        result.push_str(&self.end.to_string());
+        result.push_str(" : ");
+        match &self.state {
+            State::Open => result.push_str("Open"),
+            State::Closed => result.push_str("Closed"),
+        }
+        result
     }
 
     pub fn get_yaml(&self) -> Vec<Yaml> {
@@ -181,14 +194,14 @@ enum SemanticPosition {
     Done,
 }
 
-fn check_out(identcheck: &mut Identcheck, c: &char) {
-    if *c == identcheck.first_char {
+fn check_out(identcheck: &mut Identcheck, c: char) {
+    if c == identcheck.first_char {
         identcheck.length = 1;
         identcheck.semantic_position = SemanticPosition::Ident;
     }
 }
 
-fn clean_up(identcheck: &mut Identcheck, c: &char) {
+fn clean_up(identcheck: &mut Identcheck, c: char) {
     reset(identcheck);
     check_out(identcheck, c); // Could be the start of a ident
 }
@@ -199,47 +212,47 @@ fn reset(identcheck: &mut Identcheck) {
     identcheck.semantic_position = SemanticPosition::Out;
 }
 
-fn check_ident(identcheck: &mut Identcheck, c: &char) {
+fn check_ident(identcheck: &mut Identcheck, c: char) {
     let check_size = identcheck.ident.len() < identcheck.length;
     if check_size {
-        if identcheck.begin_char == *c {
+        if identcheck.begin_char == c {
             identcheck.semantic_position = SemanticPosition::In;
             identcheck.closures = 1;
         } else {
             clean_up(identcheck, c);
         }
-    } else if *c != identcheck.ident.chars().nth(identcheck.length - 1).unwrap() {
+    } else if c != identcheck.ident.chars().nth(identcheck.length - 1).unwrap() {
         clean_up(identcheck, c);
     }
 }
 
-fn check_in(identcheck: &mut Identcheck, c: &char) {
+fn check_in(identcheck: &mut Identcheck, c: char) {
     let begin = identcheck.begin_char;
     let end = identcheck.end_char;
-    if *c == begin {
+    if c == begin {
         identcheck.closures += 1;
-    } else if *c == end {
+    } else if c == end {
         identcheck.closures -= 1;
         check_end(identcheck);
-    } else if *c == '\'' {
+    } else if c == '\'' {
         identcheck.semantic_position = SemanticPosition::InSingleQuote;
-    } else if *c == '"' {
+    } else if c == '"' {
         identcheck.semantic_position = SemanticPosition::InDoubleQuote;
     }
 }
 
-fn check_single_quote(identcheck: &mut Identcheck, c: &char) {
-    if *c == '\'' {
+fn check_single_quote(identcheck: &mut Identcheck, c: char) {
+    if c == '\'' {
         identcheck.semantic_position = SemanticPosition::In;
-    } else if *c == '\\' {
+    } else if c == '\\' {
         identcheck.semantic_position = SemanticPosition::InSingleQuoteEscaped;
     }
 }
 
-fn check_double_quote(identcheck: &mut Identcheck, c: &char) {
-    if *c == '\'' {
+fn check_double_quote(identcheck: &mut Identcheck, c: char) {
+    if c == '\'' {
         identcheck.semantic_position = SemanticPosition::In;
-    } else if *c == '\\' {
+    } else if c == '\\' {
         identcheck.semantic_position = SemanticPosition::InDoubleQuoteEscaped;
     }
 }
@@ -248,6 +261,29 @@ fn check_end(identcheck: &mut Identcheck) {
     if identcheck.closures == 0 {
         identcheck.semantic_position = SemanticPosition::Done;
     }
+}
+
+fn add_result(
+    state: State,
+    results: &mut Vec<Result>,
+    identcheck: &mut Identcheck,
+    s: &str,
+    i: usize,
+) {
+    let length = identcheck.length.checked_sub(1).unwrap();
+    let start = i.checked_sub(length).unwrap();
+    let end = i;
+
+    let mut text: String = s.chars().skip(start).take(length - 1).collect();
+    text = text.replacen(identcheck.begin_char, ": ", 1);
+    text.insert(0, '{');
+    text.push('}');
+    results.push(Result {
+        text,
+        state,
+        start,
+        end,
+    });
 }
 
 fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
@@ -271,19 +307,19 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
             identcheck.length += 1;
             match identcheck.semantic_position {
                 SemanticPosition::Out => {
-                    check_out(identcheck, &c);
+                    check_out(identcheck, c);
                 }
                 SemanticPosition::Ident => {
-                    check_ident(identcheck, &c);
+                    check_ident(identcheck, c);
                 }
                 SemanticPosition::In => {
-                    check_in(identcheck, &c);
+                    check_in(identcheck, c);
                 }
                 SemanticPosition::InSingleQuote => {
-                    check_single_quote(identcheck, &c);
+                    check_single_quote(identcheck, c);
                 }
                 SemanticPosition::InDoubleQuote => {
-                    check_double_quote(identcheck, &c);
+                    check_double_quote(identcheck, c);
                 }
                 SemanticPosition::InSingleQuoteEscaped => {
                     identcheck.semantic_position = SemanticPosition::InSingleQuote;
@@ -292,26 +328,18 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
                     identcheck.semantic_position = SemanticPosition::InDoubleQuote;
                 }
                 SemanticPosition::Done => {
-                    let length = identcheck.length.checked_sub(1).unwrap();
-                    let pos = i;
-                    let pos_start = pos.checked_sub(length).unwrap();
-                    let pos_end = i;
-                    let mut result_text: String =
-                        s.chars().skip(pos_start).take(length - 1).collect();
-                    result_text = result_text.replacen(identcheck.begin_char, ": ", 1);
-                    result_text.insert(0, '{');
-                    result_text.push('}');
-                    v.push(Result {
-                        text: result_text,
-                        state: State::Closed,
-                        start: pos_start,
-                        end: pos_end,
-                    });
+                    add_result(State::Closed, &mut v, identcheck, s, i);
                     reset(identcheck);
-                    check_out(identcheck, &c);
+                    check_out(identcheck, c);
                 }
-                _ => {}
             }
+        }
+    }
+    for identcheck in &mut identchecks {
+        match identcheck.semantic_position {
+            SemanticPosition::In => add_result(State::Open, &mut v, identcheck, s, s.len()),
+            SemanticPosition::Done => add_result(State::Closed, &mut v, identcheck, s, s.len()),
+            _ => (),
         }
     }
     v
