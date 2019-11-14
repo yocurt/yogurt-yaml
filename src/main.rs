@@ -52,7 +52,7 @@ fn main() {
         ap.parse_args_or_exit();
     }
 
-    let curt = YogurtYaml::new(&["ID", "REF"]);
+    let curt = YogurtYaml::new(&["ID", "REF", "ADD", "END"]);
 
     if pipe {
         pipe_data(curt, v2);
