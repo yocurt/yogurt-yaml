@@ -1,10 +1,9 @@
-name: "Rust Build Pipeline"
+name: "Cargo Release"
 
 on:
   push:
-    branches:
-      - master
-      - 'releases/**'
+    tags:
+      - v*
 
 jobs:
   build:
@@ -49,3 +48,27 @@ jobs:
       with:
         command: clippy
         args: -- -D warnings
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - uses: actions/checkout@v1
+      name: "Checkout sources"
+    - uses: actions-rs/toolchain@v1
+      name: "Setup rust toolchain"
+      with:
+        profile: minimal
+        toolchain: stable
+        override: "true"
+
+    - uses: actions-rs/cargo@v1
+      name: "Publish dry run"
+      with:
+        command: publish
+        args: --dry-run
+
+    - uses: actions-rs/cargo@v1
+      name: "Publish to crates.io"
+      with:
+        command: publish

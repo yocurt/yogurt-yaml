@@ -1,22 +1,13 @@
-name: "Rust Build Pipeline"
+name: "Minimal Build Pipeline"
 
 on:
   push:
-    branches:
-      - master
-      - 'releases/**'
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macOS-latest, ubuntu-latest]
-        rust:
-          - stable
-          - beta
-          - nightly
-
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
       name: "Checkout sources"
@@ -24,7 +15,7 @@ jobs:
       name: "Setup rust toolchain"
       with:
         profile: minimal
-        toolchain: ${{ matrix.rust }}
+        toolchain: nightly
         override: "true"
         components: rustfmt, clippy
 
