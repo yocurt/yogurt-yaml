@@ -250,7 +250,7 @@ fn check_single_quote(identcheck: &mut Identcheck, c: char) {
 }
 
 fn check_double_quote(identcheck: &mut Identcheck, c: char) {
-    if c == '\'' {
+    if c == '"' {
         identcheck.semantic_position = SemanticPosition::In;
     } else if c == '\\' {
         identcheck.semantic_position = SemanticPosition::InDoubleQuoteEscaped;
@@ -336,6 +336,7 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
         }
     }
     for identcheck in &mut identchecks {
+        identcheck.length += 1;
         match identcheck.semantic_position {
             SemanticPosition::In => add_result(State::Open, &mut v, identcheck, s, s.len()),
             SemanticPosition::Done => add_result(State::Closed, &mut v, identcheck, s, s.len()),
@@ -430,8 +431,19 @@ mod tests {
         );
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
-        // assert_eq!(result[0].start, 12);
-        // assert_eq!(result[0].end, 35);
+        assert_eq!(result[0].start, 12);
+        assert_eq!(result[0].end, 35);
+    }
+
+    #[test]
+    fn test_cut_yaml_idents_distraction() {
+        let result = cut_yaml_idents(&["ID"],
+            &"other stuff ID[Test, TestContent: 3] more stuff".to_string(),
+        );
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
+        assert_eq!(result[0].start, 12);
+        assert_eq!(result[0].end, 36);
     }
 
     #[test]
@@ -459,8 +471,8 @@ mod tests {
         let result = cut_yaml(&pair, &"other stuff ID[Test, \nTestContent: 3] more\n ID[Test2, \nTestContent: 4\n] stuID[Test3, TestContent: a7ad]ff".to_string());
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "{ID: Test, \nTestContent: 3}");
-        // assert_eq!(result[0].start, 12);
-        // assert_eq!(result[0].end, 36);
+        assert_eq!(result[0].start, 12);
+        assert_eq!(result[0].end, 36);
         assert_eq!(result[1].text, "{ID: Test2, \nTestContent: 4\n}");
         assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
     }
@@ -497,5 +509,24 @@ mod tests {
             result[2].text,
             r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
         );
+    }
+
+    #[test]
+    fn test_cut_yaml_idents_escaped() {
+        let result = cut_yaml_idents(&["ID", "REF", "ADD"], &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
+        assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: ["4"]\n}"#);
+        assert_eq!(
+            result[2].text,
+            r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
+        );
+    }
+
+    #[test]
+    fn test_cut_yaml_idents_fix() {
+        let result = cut_yaml_idents(&["ID", "REF"], &r#"- ID[REQ, caption: "Requirements"]"#.to_string());
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].text, r#"{ID: REQ, caption: "Requirements"}"#);
     }
 }

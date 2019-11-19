@@ -57,7 +57,7 @@ fn main() {
     if pipe {
         pipe_data(curt, v2);
     } else if test {
-        let test_data = "other stuff ID[Test, \nTestContent: 3] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff";
+        let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]";
         let results = if v2 {
             curt.extract2(test_data)
         } else {
