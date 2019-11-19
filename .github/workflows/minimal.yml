@@ -4,6 +4,9 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
+    branches-ignore:
+      - master
+      - 'releases/**'
 
 jobs:
   build:
