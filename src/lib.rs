@@ -437,7 +437,8 @@ mod tests {
 
     #[test]
     fn test_cut_yaml_idents_distraction() {
-        let result = cut_yaml_idents(&["ID"],
+        let result = cut_yaml_idents(
+            &["ID"],
             &"other stuff ID[Test, TestContent: 3] more stuff".to_string(),
         );
         assert_eq!(result.len(), 1);
@@ -525,7 +526,10 @@ mod tests {
 
     #[test]
     fn test_cut_yaml_idents_fix() {
-        let result = cut_yaml_idents(&["ID", "REF"], &r#"- ID[REQ, caption: "Requirements"]"#.to_string());
+        let result = cut_yaml_idents(
+            &["ID", "REF"],
+            &r#"- ID[REQ, caption: "Requirements"]"#.to_string(),
+        );
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, r#"{ID: REQ, caption: "Requirements"}"#);
     }
