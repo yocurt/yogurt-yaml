@@ -69,6 +69,11 @@ jobs:
         args: --dry-run
 
     - uses: actions-rs/cargo@v1
+      name: "Login to crates.io"
+      with:
+        command: login ${{ secrets.CRATES_IO_TOKEN }}
+
+    - uses: actions-rs/cargo@v1
       name: "Publish to crates.io"
       with:
         command: publish
