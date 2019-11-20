@@ -1,10 +1,17 @@
 [package]
 name = "yogurt-yaml"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Johannes Jeising <Johannes.Jeising@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
-description = "Get embedded yaml from yogurt files"
+homepage = "https://yocurt.github.io/docs/yogurt/"
+repository = "https://github.com/yocurt/yugurt-yaml"
+documentation = "https://yocurt.github.io/docs/yogurt/"
+readme = "README.md"
+description = """
+Get embedded yaml from yogurt files
+"""
+
 
 [lib]
 name = "libcurt"
