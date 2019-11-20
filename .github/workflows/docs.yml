@@ -23,6 +23,8 @@ jobs:
     - name: Append history
       run: |
         cd $GITHUB_WORKSPACE
+        pwd
+        ls
         cd repo
         echo "---" > ../trigger/history/yogurt-yaml
         git show --summary > ../trigger/history/yogurt-yaml

@@ -68,4 +68,3 @@ To check the performance of the curt tooling provide benchmarks of elementary fu
 Functions::
 - cut-yaml
 - cut-yaml-idents
-- ...

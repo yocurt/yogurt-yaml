@@ -4,7 +4,7 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - 'workflows/**'
+      - '.github/**'
     branches:
       - master
       - 'releases/**'
