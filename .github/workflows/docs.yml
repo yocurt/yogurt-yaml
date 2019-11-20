@@ -1,0 +1,36 @@
+name: Trigger Docs Update
+
+on:
+  push:
+    paths:
+      - 'docs/**'
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        path: repo
+    - uses: actions/checkout@v1
+      with:
+        repository: yocurt/docs-trigger
+        ref: master
+        token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+        path: trigger
+    - name: Append history
+      run: |
+        cd repo
+        echo "---" > ../trigger/history/yogurt-yaml
+        git show --summary > ../trigger/history/yogurt-yaml
+        cd ../trigger
+        mkdir history
+        git config --local user.email "update@yocurt.docs"
+        git config --local user.name "Yogurt Yaml"
+        git commit -m "Docs updated in yogurt yaml docs" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
