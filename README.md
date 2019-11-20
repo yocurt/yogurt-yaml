@@ -10,8 +10,16 @@ Get yaml from yogurt files
 
 There is a lib and a executable, which can be used.
 
-## CLI Example
+## CLI Examples
+
+### Simple Example
 
 ``` bash
 cat file | curt -pv
+```
+
+### More sophisticated Example
+
+``` bash
+cat **/*.adoc | curt -pv | yaml json write - | less
 ```
