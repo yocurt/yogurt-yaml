@@ -1,5 +1,6 @@
 # Yogurt Yaml
 
+![](https://github.com/yocurt/yogurt-yaml/workflows/Cargo%20Release/badge.svg)
 ![](https://github.com/yocurt/yogurt-yaml/workflows/Rust%20Build%20Pipeline/badge.svg?branch=master)
 ![](https://github.com/yocurt/yogurt-yaml/workflows/Trigger%20Docs%20Update/badge.svg)
 
