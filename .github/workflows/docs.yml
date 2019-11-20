@@ -22,7 +22,7 @@ jobs:
         path: trigger
     - name: Append history
       run: |
-        cd $(GITHUB_WORKSPACE)
+        cd $GITHUB_WORKSPACE
         cd repo
         echo "---" > ../trigger/history/yogurt-yaml
         git show --summary > ../trigger/history/yogurt-yaml
