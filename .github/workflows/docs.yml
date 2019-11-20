@@ -23,17 +23,14 @@ jobs:
     - name: Append history
       run: |
         cd $GITHUB_WORKSPACE
-        cd ..
-        pwd
-        ls
-        cd $GITHUB_WORKSPACE
         mkdir -p ../trigger/history
         echo "---" > ../trigger/history/yogurt-yaml
         git show --summary > ../trigger/history/yogurt-yaml
         cd ../trigger
         git config --local user.email "update@yocurt.docs"
         git config --local user.name "Yogurt Yaml"
-        git commit -m "Docs updated in yogurt yaml docs" -a
+        git add --all
+        git commit -m "Docs updated in yogurt yaml docs"
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
