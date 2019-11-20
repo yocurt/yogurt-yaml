@@ -36,4 +36,5 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+        repository: yocurt/docs-trigger
         directory: ../trigger
