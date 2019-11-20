@@ -64,3 +64,7 @@ This could be done via ignoring the first word before the word before ":".
 ID[::benchmarking]
 
 To check the performance of the curt tooling provide benchmarks of elementary functions.
+
+Functions::
+- cut-yaml
+- cut-yaml-idents
