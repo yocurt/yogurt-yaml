@@ -59,4 +59,8 @@ To ignore multiline comments like #, //, /* at the beginning of a line within a 
 (Add to IMPL:)
 This could be done via ignoring the first word before the word before ":".
 
+== Provide reasonable performace
 
+ID[::benchmarking]
+
+To check the performance of the curt tooling provide benchmarks of elementary functions.
