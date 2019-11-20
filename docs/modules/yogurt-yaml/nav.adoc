@@ -1,1 +1,2 @@
 * xref:extract_yaml.adoc[Extract Yaml]
+* xref:yaml_cli.adoc[Yaml CLI]
