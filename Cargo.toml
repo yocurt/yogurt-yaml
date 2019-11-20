@@ -1,11 +1,11 @@
 [package]
 name = "yogurt-yaml"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Johannes Jeising <Johannes.Jeising@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
 homepage = "https://yocurt.github.io/docs/yogurt/"
-repository = "https://github.com/yocurt/yugurt-yaml"
+repository = "https://github.com/yocurt/yogurt-yaml"
 documentation = "https://yocurt.github.io/docs/yogurt/"
 readme = "README.md"
 description = """
