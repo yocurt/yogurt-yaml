@@ -25,8 +25,8 @@ jobs:
         cd $GITHUB_WORKSPACE
         cd ../repo
         mkdir -p ../trigger/history
-        echo "---" > ../trigger/history/yogurt-yaml
-        git show --summary > ../trigger/history/yogurt-yaml
+        echo "---" >> ../trigger/history/yogurt-yaml
+        git show --summary >> ../trigger/history/yogurt-yaml
         cd ../trigger
         git config --local user.email "update@yocurt.docs"
         git config --local user.name "Yogurt Yaml"
