@@ -8,7 +8,7 @@ on:
       - master
 
 jobs:
-  build:
+  trigger:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -23,13 +23,14 @@ jobs:
     - name: Append history
       run: |
         cd $GITHUB_WORKSPACE
+        cd ..
         pwd
         ls
-        cd repo
+        cd $GITHUB_WORKSPACE
+        mkdir -p ../trigger/history
         echo "---" > ../trigger/history/yogurt-yaml
         git show --summary > ../trigger/history/yogurt-yaml
         cd ../trigger
-        mkdir history
         git config --local user.email "update@yocurt.docs"
         git config --local user.name "Yogurt Yaml"
         git commit -m "Docs updated in yogurt yaml docs" -a
