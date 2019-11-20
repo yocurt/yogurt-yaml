@@ -22,6 +22,7 @@ jobs:
         path: trigger
     - name: Append history
       run: |
+        cd $(GITHUB_WORKSPACE)
         cd repo
         echo "---" > ../trigger/history/yogurt-yaml
         git show --summary > ../trigger/history/yogurt-yaml
@@ -34,3 +35,4 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_ACCESS_TOKEN }}
+        directory: trigger

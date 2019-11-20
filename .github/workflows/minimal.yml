@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
+      - 'workflows/**'
     branches-ignore:
       - master
       - 'releases/**'

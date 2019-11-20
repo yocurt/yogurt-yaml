@@ -2,6 +2,9 @@ name: "Rust Build Pipeline"
 
 on:
   push:
+    paths-ignore:
+      - 'docs/**'
+      - 'workflows/**'
     branches:
       - master
       - 'releases/**'
