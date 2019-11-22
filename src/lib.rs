@@ -178,9 +178,25 @@ fn add_result(
 }
 
 fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
-    let mut v = Vec::new();
-    let mut identchecks = Vec::new();
+    let mut identchecks = create_ident_checks(idents);
+    let mut results = cut_yaml(&mut identchecks, s);
+    check_ident_checks(&mut identchecks, s, &mut results);
+    results
+}
 
+fn check_ident_checks(ident_checks: &mut Vec<Identcheck>, s: &str, results: &mut Vec<Result>) {
+    for identcheck in ident_checks {
+        identcheck.length += 1;
+        match identcheck.semantic_position {
+            SemanticPosition::In => add_result(State::Open, results, identcheck, s, s.len()),
+            SemanticPosition::Done => add_result(State::Closed, results, identcheck, s, s.len()),
+            _ => (),
+        }
+    }
+}
+
+fn create_ident_checks<'a>(idents: &'a [&'a str]) -> Vec<Identcheck> {
+    let mut identchecks = Vec::new();
     for ident in idents {
         identchecks.push(Identcheck {
             ident,
@@ -192,9 +208,13 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
             closures: 0,
         });
     }
+    identchecks
+}
 
+fn cut_yaml(ident_checks: &mut Vec<Identcheck>, s: &str) -> Vec<Result> {
+    let mut results = Vec::new();
     for (i, c) in s.chars().enumerate() {
-        for identcheck in &mut identchecks {
+        for identcheck in &mut *ident_checks {
             identcheck.length += 1;
             match identcheck.semantic_position {
                 SemanticPosition::Out => {
@@ -219,22 +239,14 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
                     identcheck.semantic_position = SemanticPosition::InDoubleQuote;
                 }
                 SemanticPosition::Done => {
-                    add_result(State::Closed, &mut v, identcheck, s, i);
+                    add_result(State::Closed, &mut results, identcheck, s, i);
                     reset(identcheck);
                     check_out(identcheck, c);
                 }
             }
         }
     }
-    for identcheck in &mut identchecks {
-        identcheck.length += 1;
-        match identcheck.semantic_position {
-            SemanticPosition::In => add_result(State::Open, &mut v, identcheck, s, s.len()),
-            SemanticPosition::Done => add_result(State::Closed, &mut v, identcheck, s, s.len()),
-            _ => (),
-        }
-    }
-    v
+    results
 }
 
 #[cfg(test)]
