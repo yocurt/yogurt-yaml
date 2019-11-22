@@ -15,11 +15,11 @@ There is a lib and a executable, which can be used.
 ### Simple Example
 
 ``` bash
-cat file | curt -pv
+cat file | curt -p
 ```
 
 ### More sophisticated Example
 
 ``` bash
-cat **/*.adoc | curt -pv | yaml json write - | less
+cat **/*.adoc | curt -p | yaml json write - | less
 ```

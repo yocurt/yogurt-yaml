@@ -20,7 +20,7 @@ fn pipe_data(curt: YogurtYaml) {
             break;
         }
 
-        results = curt.extract2_clear(&mut line);
+        results = curt.extract_clear(&mut line);
 
         for result in results {
             let text = result.get_text();
@@ -51,7 +51,7 @@ fn main() {
         pipe_data(curt);
     } else if test {
         let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]";
-        let results = curt.extract2(test_data);
+        let results = curt.extract(test_data);
         for result in results {
             println!("{:?}", &result.get_text());
         }

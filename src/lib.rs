@@ -50,11 +50,11 @@ impl<'a> YogurtYaml<'a> {
         }
     }
 
-    pub fn extract2(&self, s: &str) -> Vec<Result> {
+    pub fn extract(&self, s: &str) -> Vec<Result> {
         cut_yaml_idents(&self.indicators, &s.to_string())
     }
 
-    pub fn extract2_clear(&self, s: &mut String) -> Vec<Result> {
+    pub fn extract_clear(&self, s: &mut String) -> Vec<Result> {
         let result = cut_yaml_idents(&self.indicators, s);
         s.clear();
         result
