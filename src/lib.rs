@@ -45,9 +45,7 @@ impl Result {
 
 impl<'a> YogurtYaml<'a> {
     pub fn new(indicators: &'a [&'a str]) -> YogurtYaml<'a> {
-        YogurtYaml {
-            indicators,
-        }
+        YogurtYaml { indicators }
     }
 
     pub fn extract(&self, s: &str) -> Vec<Result> {
@@ -251,7 +249,8 @@ mod tests {
 
     #[test]
     fn test_cut_yaml_distraction() {
-        let result = cut_yaml_idents(&["ID"],
+        let result = cut_yaml_idents(
+            &["ID"],
             &"other stuff ID[Test, TestContent: 3] more stuff".to_string(),
         );
         assert_eq!(result.len(), 1);
