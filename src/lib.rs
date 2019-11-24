@@ -66,6 +66,11 @@ impl<'a> YogurtYaml<'a> {
         result
     }
 
+    // ID[IMPL::Multiline_Support, implements: REQ::Multi_Line]
+    pub fn curt(&mut self, s: &str) {
+        self.results.extend(cut_yaml(&mut self.ident_checks, s));
+    }
+
     pub fn curt_clear(&mut self, s: &mut String) {
         self.results.extend(cut_yaml(&mut self.ident_checks, s));
         if !self.is_open() {

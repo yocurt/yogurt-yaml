@@ -19,9 +19,10 @@ fn pipe_data(mut curt: YogurtYaml) {
             break;
         }
 
-        curt.curt_clear(&mut line);
+        curt.curt(&line);
 
         if !curt.is_open() {
+            line.clear();
             for result in curt.get_results() {
                 let text = result.get_text();
                 writeln!(handle, "- {}", text).unwrap();
