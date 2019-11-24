@@ -82,6 +82,10 @@ impl<'a> YogurtYaml<'a> {
         &self.results
     }
 
+    pub fn clear_results(&mut self) {
+        self.results.clear();
+    }
+
     pub fn is_open(&self) -> bool {
         for identcheck in &self.ident_checks {
             if identcheck.semantic_position != SemanticPosition::Out {
@@ -95,7 +99,7 @@ impl<'a> YogurtYaml<'a> {
         for identcheck in &mut self.ident_checks {
             reset(identcheck);
         }
-        self.results.clear();
+        self.clear_results();
     }
 
     pub fn verify(_extracts: Vec<Result>) {}

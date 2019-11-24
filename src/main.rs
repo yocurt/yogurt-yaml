@@ -22,11 +22,11 @@ fn pipe_data(mut curt: YogurtYaml) {
         curt.curt(&line);
 
         if !curt.is_open() {
-            line.clear();
             for result in curt.get_results() {
-                let text = result.get_text();
-                writeln!(handle, "- {}", text).unwrap();
+                writeln!(handle, "- {}", result.get_text()).unwrap();
             }
+            curt.clear_results();
+            line.clear();
         }
     }
 }
