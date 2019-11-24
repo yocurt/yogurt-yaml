@@ -5,6 +5,8 @@ use yaml_rust::{Yaml, YamlLoader};
 // ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml<'a> {
     indicators: &'a [&'a str],
+    ident_checks: Vec<Identcheck<'a>>,
+    results: Vec<Result>,
 }
 
 enum State {
@@ -45,7 +47,13 @@ impl Result {
 
 impl<'a> YogurtYaml<'a> {
     pub fn new(indicators: &'a [&'a str]) -> YogurtYaml<'a> {
-        YogurtYaml { indicators }
+        let ident_checks = create_ident_checks(indicators);
+        let results = Vec::new();
+        YogurtYaml {
+            indicators,
+            ident_checks,
+            results,
+        }
     }
 
     pub fn extract(&self, s: &str) -> Vec<Result> {
@@ -56,6 +64,33 @@ impl<'a> YogurtYaml<'a> {
         let result = cut_yaml_idents(&self.indicators, s);
         s.clear();
         result
+    }
+
+    pub fn curt_clear(&mut self, s: &mut String) {
+        self.results.extend(cut_yaml(&mut self.ident_checks, s));
+        if !self.is_open() {
+            s.clear();
+        }
+    }
+
+    pub fn get_results(&self) -> &Vec<Result> {
+        &self.results
+    }
+
+    pub fn is_open(&self) -> bool {
+        for identcheck in &self.ident_checks {
+            if identcheck.semantic_position != SemanticPosition::Out {
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn reset(&mut self) {
+        for identcheck in &mut self.ident_checks {
+            reset(identcheck);
+        }
+        self.results.clear();
     }
 
     pub fn verify(_extracts: Vec<Result>) {}
@@ -74,6 +109,7 @@ struct Identcheck<'a> {
     closures: i32,
 }
 
+#[derive(PartialEq)]
 enum SemanticPosition {
     Out,
     Ident,
@@ -188,7 +224,7 @@ fn check_ident_checks(ident_checks: &mut Vec<Identcheck>, s: &str, results: &mut
     for identcheck in ident_checks {
         identcheck.length += 1;
         match identcheck.semantic_position {
-            SemanticPosition::In => add_result(State::Open, results, identcheck, s, s.len()),
+            SemanticPosition::In => add_result(State::Open, results, identcheck, s, s.len()), // FIXME: There is more than only IN but also IN Quotes etc
             SemanticPosition::Done => add_result(State::Closed, results, identcheck, s, s.len()),
             _ => (),
         }
