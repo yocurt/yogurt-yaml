@@ -399,4 +399,42 @@ mod tests {
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, r#"{ID: REQ, caption: "Requirements"}"#);
     }
+
+    use crate::YogurtYaml;
+    #[test]
+    fn test_curt() {
+        let test_data = &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string();
+        let mut curt = YogurtYaml::new(&["ID", "REF", "ADD"]);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 0);
+        curt.curt_clear(test_data);
+        let result = curt.get_results();
+        assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
+        assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: ["4"]\n}"#);
+        assert_eq!(
+            result[2].text,
+            r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
+        );
+    }
+
+    #[test]
+    fn test_curt_aggregate() {
+        let test_data_part_a =
+            &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n"#.to_string();
+        let test_data_part_b = &mut r#"REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string();
+        let mut curt = YogurtYaml::new(&["ID", "REF", "ADD"]);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 0);
+        curt.curt_clear(test_data_part_a);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 1);
+        curt.curt_clear(test_data_part_b);
+        let result = curt.get_results();
+        assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
+        assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: ["4"]\n}"#);
+        assert_eq!(
+            result[2].text,
+            r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
+        );
+    }
 }

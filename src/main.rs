@@ -5,7 +5,7 @@ use argparse::{ArgumentParser, StoreTrue};
 use libcurt::YogurtYaml;
 use std::io::{self, Read, Write};
 
-fn pipe_data(curt: YogurtYaml) {
+fn pipe_data(mut curt: YogurtYaml) {
     let stdin = io::stdin();
     let mut stdin = stdin.lock();
 
@@ -13,18 +13,19 @@ fn pipe_data(curt: YogurtYaml) {
     let mut handle = io::BufWriter::new(stdout);
 
     let mut line = String::new();
-    let mut results: Vec<libcurt::Result>;
 
     while let Ok(n_bytes) = stdin.read_to_string(&mut line) {
         if n_bytes == 0 {
             break;
         }
 
-        results = curt.extract_clear(&mut line);
+        curt.curt_clear(&mut line);
 
-        for result in results {
-            let text = result.get_text();
-            writeln!(handle, "- {}", text).unwrap();
+        if !curt.is_open() {
+            for result in curt.get_results() {
+                let text = result.get_text();
+                writeln!(handle, "- {}", text).unwrap();
+            }
         }
     }
 }
