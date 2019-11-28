@@ -21,7 +21,7 @@ fn pipe_data(mut curt: YogurtYaml) {
 
         curt.curt(&line);
 
-        if !curt.is_open() {
+        if !curt.reset_open() {
             for result in curt.get_results() {
                 writeln!(handle, "- {}", result.get_text()).unwrap();
             }
