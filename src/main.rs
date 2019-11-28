@@ -47,14 +47,14 @@ fn main() {
         ap.parse_args_or_exit();
     }
 
-    let curt = YogurtYaml::new(&["ID", "REF", "ADD", "END"]);
+    let mut curt = YogurtYaml::new(&["ID", "REF", "ADD", "END"]);
 
     if pipe {
         pipe_data(curt);
     } else if test {
         let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]";
-        let results = curt.extract(test_data);
-        for result in results {
+        curt.curt(test_data);
+        for result in curt.get_results() {
             println!("{:?}", &result.get_text());
         }
     }

@@ -4,19 +4,12 @@ use yaml_rust::{Yaml, YamlLoader};
 
 // ID[IMPL::yaml-extraction::]
 pub struct YogurtYaml<'a> {
-    indicators: &'a [&'a str],
     ident_checks: Vec<Identcheck<'a>>,
     results: Vec<Result>,
 }
 
-enum State {
-    Open,
-    Closed,
-}
-
 pub struct Result {
     text: String,
-    state: State,
     start: usize,
     end: usize,
 }
@@ -32,11 +25,6 @@ impl Result {
         result.push_str(&self.start.to_string());
         result.push_str(" -> ");
         result.push_str(&self.end.to_string());
-        result.push_str(" : ");
-        match &self.state {
-            State::Open => result.push_str("Open"),
-            State::Closed => result.push_str("Closed"),
-        }
         result
     }
 
@@ -50,20 +38,9 @@ impl<'a> YogurtYaml<'a> {
         let ident_checks = create_ident_checks(indicators);
         let results = Vec::new();
         YogurtYaml {
-            indicators,
             ident_checks,
             results,
         }
-    }
-
-    pub fn extract(&self, s: &str) -> Vec<Result> {
-        cut_yaml_idents(&self.indicators, &s.to_string())
-    }
-
-    pub fn extract_clear(&self, s: &mut String) -> Vec<Result> {
-        let result = cut_yaml_idents(&self.indicators, s);
-        s.clear();
-        result
     }
 
     // ID[IMPL::Multiline_Support, implements: REQ::Multi_Line]
@@ -112,10 +89,6 @@ impl<'a> YogurtYaml<'a> {
         }
         result
     }
-
-    pub fn verify(_extracts: Vec<Result>) {}
-
-    pub fn combine(_extracts: Vec<Result>) {}
 }
 
 struct Identcheck<'a> {
@@ -210,13 +183,7 @@ fn check_end(identcheck: &mut Identcheck) {
     }
 }
 
-fn add_result(
-    state: State,
-    results: &mut Vec<Result>,
-    identcheck: &mut Identcheck,
-    s: &str,
-    i: usize,
-) {
+fn add_result(results: &mut Vec<Result>, identcheck: &mut Identcheck, s: &str, i: usize) {
     let length = identcheck.length.checked_sub(1).unwrap();
     let start = i.checked_sub(length).unwrap();
     let end = i;
@@ -225,15 +192,10 @@ fn add_result(
     text = text.replacen(identcheck.begin_char, ": ", 1);
     text.insert(0, '{');
     text.push('}');
-    results.push(Result {
-        text,
-        state,
-        start,
-        end,
-    });
+    results.push(Result { text, start, end });
 }
 
-fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
+pub fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
     let mut identchecks = create_ident_checks(idents);
     let mut results = cut_yaml(&mut identchecks, s);
     check_ident_checks(&mut identchecks, s, &mut results);
@@ -243,10 +205,8 @@ fn cut_yaml_idents(idents: &[&str], s: &str) -> Vec<Result> {
 fn check_ident_checks(ident_checks: &mut Vec<Identcheck>, s: &str, results: &mut Vec<Result>) {
     for identcheck in ident_checks {
         identcheck.length += 1;
-        match identcheck.semantic_position {
-            SemanticPosition::In => add_result(State::Open, results, identcheck, s, s.len()), // FIXME: There is more than only IN but also IN Quotes etc
-            SemanticPosition::Done => add_result(State::Closed, results, identcheck, s, s.len()),
-            _ => (),
+        if identcheck.semantic_position == SemanticPosition::Done {
+            add_result(results, identcheck, s, s.len());
         }
     }
 }
@@ -295,7 +255,7 @@ fn cut_yaml(ident_checks: &mut Vec<Identcheck>, s: &str) -> Vec<Result> {
                     identcheck.semantic_position = SemanticPosition::InDoubleQuote;
                 }
                 SemanticPosition::Done => {
-                    add_result(State::Closed, &mut results, identcheck, s, i);
+                    add_result(&mut results, identcheck, s, i);
                     reset(identcheck);
                     check_out(identcheck, c);
                 }
@@ -461,10 +421,8 @@ mod tests {
     // ID[TEST_Multiline, tests: RQM_Multiline]
     #[test]
     fn test_curt_aggregate_multiline_id() {
-        let test_data_part_a =
-            &mut r#"other stuff ID[Test, \n"#.to_string();
-        let test_data_part_b =
-            &mut r#"TestContent: ']3]]'] more\n"#.to_string();
+        let test_data_part_a = &mut r#"other stuff ID[Test, \n"#.to_string();
+        let test_data_part_b = &mut r#"TestContent: ']3]]'] more\n"#.to_string();
         let test_data_part_c = &mut r#"REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string();
         let mut curt = YogurtYaml::new(&["ID", "REF", "ADD"]);
         let result = curt.get_results();
