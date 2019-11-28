@@ -55,7 +55,7 @@ fn main() {
         let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]";
         curt.curt(test_data);
         for result in curt.get_results() {
-            println!("{:?}", &result.get_text());
+            println!("{:?}", &result.get_print());
         }
     }
 }

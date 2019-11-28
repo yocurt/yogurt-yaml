@@ -184,11 +184,11 @@ fn check_end(identcheck: &mut Identcheck) {
 }
 
 fn add_result(results: &mut Vec<Result>, identcheck: &mut Identcheck, s: &str, i: usize) {
-    let length = identcheck.length.checked_sub(1).unwrap();
-    let start = i.checked_sub(length).unwrap();
-    let end = i;
+    let end = i - 1;
+    let length = identcheck.length.checked_sub(2).unwrap(); // TODO: Minus 2 is a bit odd ..
+    let start = end.checked_sub(length).unwrap();
 
-    let mut text: String = s.chars().skip(start).take(length - 1).collect();
+    let mut text: String = s.chars().skip(start).take(length).collect();
     text = text.replacen(identcheck.begin_char, ": ", 1);
     text.insert(0, '{');
     text.push('}');
@@ -284,7 +284,7 @@ mod tests {
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
         assert_eq!(result[0].start, 12);
-        assert_eq!(result[0].end, 36); // FIXME: To be checked was 35
+        assert_eq!(result[0].end, 35);
     }
 
     #[test]
@@ -296,7 +296,7 @@ mod tests {
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].text, "{ID: Test, TestContent: 3}");
         assert_eq!(result[0].start, 12);
-        assert_eq!(result[0].end, 36);
+        assert_eq!(result[0].end, 35);
     }
 
     #[test]
@@ -323,7 +323,7 @@ mod tests {
         assert_eq!(result.len(), 3);
         assert_eq!(result[0].text, "{ID: Test, \nTestContent: 3}");
         assert_eq!(result[0].start, 12);
-        assert_eq!(result[0].end, 37); // FIXME: To sbe checked; was 36 before
+        assert_eq!(result[0].end, 36);
         assert_eq!(result[1].text, "{ID: Test2, \nTestContent: 4\n}");
         assert_eq!(result[2].text, "{ID: Test3, TestContent: a7ad}");
     }
