@@ -26,3 +26,10 @@ path = "src/main.rs"
 [dependencies]
 argparse = "0.2.2"
 yaml-rust = "0.4.3"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "benchmark"
+harness = false
