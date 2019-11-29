@@ -34,3 +34,4 @@ criterion = "0.3"
 name = "benchmark"
 path = "benches/benchmark.rs"
 harness = false
+bench = false
