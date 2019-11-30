@@ -22,5 +22,9 @@ fn criterion_benchmark_curt_1(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, criterion_benchmark_curt_1, criterion_benchmark_curt_5);
+criterion_group!(
+    benches,
+    criterion_benchmark_curt_1,
+    criterion_benchmark_curt_5
+);
 criterion_main!(benches);

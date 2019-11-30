@@ -14,10 +14,6 @@ jobs:
           toolchain: stable
           override: true
       - uses: actions-rs/cargo@v1
-        name: "Install dev dependencies"
-        with:
-          command: build
-      - uses: actions-rs/cargo@v1
         name: "Compare benchmark changes"
         with:
           command: bench
