@@ -13,21 +13,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        name: "Measure benchmark changes"
-        with:
-          command: bench
-          args: --bench benchmark -- --save-baseline changes
-      - uses: actions/checkout@v1
-        name: "Checkout master sources"
-        with:
-          ref: master
-      - uses: actions-rs/cargo@v1
-        name: "Measure benchmark master"
-        with:
-          command: bench
-          args: --bench benchmark -- --save-baseline master
-      - uses: jsqu4re/criterion-compare-action@v1.0.4
+      - uses: jsqu4re/criterion-compare-action@v1.0.5
         name: "Compare benchmarks"
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
