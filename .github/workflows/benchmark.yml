@@ -11,7 +11,7 @@ jobs:
         name: "Setup rust toolchain"
         with:
           profile: minimal
-          toolchain: stable
+          toolchain: nightly
           override: true
           components: criterion, critcmp
       - uses: actions-rs/cargo@v1
