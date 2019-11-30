@@ -27,7 +27,7 @@ jobs:
         with:
           command: bench
           args: --bench benchmark -- --save-baseline master
-      - uses: jsqu4re/criterion-compare-action@master
+      - uses: jsqu4re/criterion-compare-action@v1.0.4
         name: "Compare benchmarks"
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
