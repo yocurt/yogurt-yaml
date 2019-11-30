@@ -10,6 +10,6 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - uses: jsqu4re/criterion-compare-action@master
+      - uses: jsqu4re/criterion-compare-action@v1.0.2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
