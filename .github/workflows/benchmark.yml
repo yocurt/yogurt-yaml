@@ -13,7 +13,11 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-          components: criterion
+      - uses: actions-rs/cargo@v1
+        name: "Compare benchmark changes"
+        with:
+          command: install
+          args: criterion
       - uses: actions-rs/cargo@v1
         name: "Compare benchmark changes"
         with:
