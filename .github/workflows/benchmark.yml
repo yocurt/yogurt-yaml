@@ -13,7 +13,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-          components: criterion, critcmp
+          components: criterion
       - uses: actions-rs/cargo@v1
         name: "Compare benchmark changes"
         with:
