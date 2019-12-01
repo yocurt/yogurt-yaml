@@ -5,7 +5,6 @@ use argparse::ArgumentParser;
 use libcurt::YogurtYaml;
 use std::io::{self, Read, Write};
 
-
 /// Uses YogurtYaml to extract yaml from piped data intro standard out
 fn pipe_data(mut curt: YogurtYaml) {
     let stdin = io::stdin();
