@@ -1,7 +1,7 @@
 extern crate argparse;
 extern crate libcurt;
 
-use argparse::{ArgumentParser, StoreTrue};
+use argparse::ArgumentParser;
 use libcurt::YogurtYaml;
 use std::io::{self, Read, Write};
 
@@ -32,30 +32,10 @@ fn pipe_data(mut curt: YogurtYaml) {
 }
 
 fn main() {
-    let mut pipe = false;
-    let mut test = false;
     {
         let mut ap = ArgumentParser::new();
-        ap.set_description("Parse yaml from text");
-        ap.refer(&mut pipe).add_option(
-            &["-p", "--pipe"],
-            StoreTrue,
-            "Pipe data through this application",
-        );
-        ap.refer(&mut test)
-            .add_option(&["-t", "--test"], StoreTrue, "Run a test");
+        ap.set_description("Extract yaml from text via pipe e.g. cat file | curt");
         ap.parse_args_or_exit();
     }
-
-    let mut curt = YogurtYaml::new(&["ID", "REF", "ADD", "END"]);
-
-    if pipe {
-        pipe_data(curt);
-    } else if test {
-        let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]";
-        curt.curt(test_data);
-        for result in curt.get_results() {
-            println!("{:?}", &result.get_print());
-        }
-    }
+    pipe_data(YogurtYaml::new(&["ID", "REF", "ADD", "END"]));
 }
