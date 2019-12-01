@@ -37,7 +37,7 @@ fn pipe_data(mut curt: YogurtYaml) {
 fn main() {
     {
         let mut ap = ArgumentParser::new();
-        ap.set_description("Extract yaml from text via pipe e.g. cat file | curt");
+        ap.set_description("Extract yaml from text via pipe e.g. `cat file | curt-extract`");
         ap.parse_args_or_exit();
     }
     pipe_data(YogurtYaml::new(&["ID", "REF", "ADD", "END"]));
