@@ -3,17 +3,20 @@ extern crate yaml_rust;
 use yaml_rust::{Yaml, YamlLoader};
 
 // ID[IMPL::yaml-extraction::]
+/// Contains identifier checks and results from usage
 pub struct YogurtYaml<'a> {
     ident_checks: Vec<Identcheck<'a>>,
     results: Vec<Result>,
 }
 
+/// Results found via extraction from strings
 pub struct Result {
     text: String,
     start: usize,
     end: usize,
 }
 
+/// Access results via convenient functions
 impl Result {
     pub fn get_text(&self) -> &String {
         &self.text
@@ -34,6 +37,7 @@ impl Result {
 }
 
 impl<'a> YogurtYaml<'a> {
+    /// Create a new curt instance
     pub fn new(indicators: &'a [&'a str]) -> YogurtYaml<'a> {
         let ident_checks = create_ident_checks(indicators);
         let results = Vec::new();
@@ -91,6 +95,7 @@ impl<'a> YogurtYaml<'a> {
     }
 }
 
+/// Enables extraction of yaml data defined by identifiers and closures
 struct Identcheck<'a> {
     ident: &'a str,
     first_char: char,
