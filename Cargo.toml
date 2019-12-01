@@ -1,6 +1,6 @@
 [package]
 name = "yogurt-yaml"
-version = "0.0.4"
+version = "0.1.0"
 authors = ["Johannes Jeising <Johannes.Jeising@gmail.com>"]
 edition = "2018"
 license = "Apache-2.0"
