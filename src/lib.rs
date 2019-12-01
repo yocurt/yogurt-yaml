@@ -18,10 +18,11 @@ pub struct Result {
 
 /// Access results via convenient functions
 impl Result {
+    /// return results as proper yaml string
     pub fn get_text(&self) -> &String {
         &self.text
     }
-
+    /// return results with additional information
     pub fn get_print(&self) -> String {
         let mut result = self.text.clone();
         result.push_str(" at ");
@@ -30,12 +31,13 @@ impl Result {
         result.push_str(&self.end.to_string());
         result
     }
-
+    /// return results as vector of yaml struct
     pub fn get_yaml(&self) -> Vec<Yaml> {
         YamlLoader::load_from_str(&self.text).unwrap()
     }
 }
 
+/// Implements YogurtYaml functions
 impl<'a> YogurtYaml<'a> {
     /// Create a new curt instance
     pub fn new(indicators: &'a [&'a str]) -> YogurtYaml<'a> {
@@ -48,10 +50,12 @@ impl<'a> YogurtYaml<'a> {
     }
 
     // ID[IMPL::Multiline_Support, implements: REQ::Multi_Line]
+    /// Extract yaml from string
     pub fn curt(&mut self, s: &str) {
         self.results.extend(cut_yaml(&mut self.ident_checks, s));
     }
 
+    /// Extracts yaml and clears string if not open
     pub fn curt_clear(&mut self, s: &mut String) {
         self.results.extend(cut_yaml(&mut self.ident_checks, s));
         if !self.reset_open() {
@@ -59,14 +63,17 @@ impl<'a> YogurtYaml<'a> {
         }
     }
 
+    /// Return results
     pub fn get_results(&self) -> &Vec<Result> {
         &self.results
     }
 
+    /// Clear the list of results
     pub fn clear_results(&mut self) {
         self.results.clear();
     }
 
+    /// Checks whether there is any not `SemanticPosition::Out` containing `identcheck` in the list of `ident_checks`
     pub fn is_open(&self) -> bool {
         for identcheck in &self.ident_checks {
             if identcheck.semantic_position != SemanticPosition::Out {
@@ -76,6 +83,7 @@ impl<'a> YogurtYaml<'a> {
         false
     }
 
+    /// Clears results and resets all `ident_checks`
     pub fn reset(&mut self) {
         for identcheck in &mut self.ident_checks {
             reset(identcheck);
@@ -83,6 +91,7 @@ impl<'a> YogurtYaml<'a> {
         self.clear_results();
     }
 
+    /// Resets all `ident_checks' and returns according to `self.is_open()`
     pub fn reset_open(&mut self) -> bool {
         let mut result = false;
         for identcheck in &mut self.ident_checks {
