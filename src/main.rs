@@ -41,7 +41,7 @@ fn main() {
     let mut words = String::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.set_description("Extract yaml from text via pipe e.g. `cat file | curt-extract`");
+        ap.set_description("Extract yaml from text via pipe e.g. `cat file | curt-extract -b ID`");
         ap.refer(&mut words).add_option(
             &["--words", "-w"],
             Store,
