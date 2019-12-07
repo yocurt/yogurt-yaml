@@ -8,11 +8,13 @@ use libcurt::{IdentRange, Indicators, YogurtYaml};
 
 fn criterion_benchmark_curt_multi(c: &mut Criterion) {
     let mut indicators = Vec::new();
-    let indicator = Indicators::new(&["ID", "ADD", "REF", "END"], IdentRange::Bracket);
-    indicator.push(indicator);
-    let mut curt = YogurtYaml::new(indicators);
-    let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF[Test2, \nTestContent: [4]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]".repeat(5);
-    c.bench_function("YogurtYaml.curt()", |b| {
+    let indicator_brackets = Indicators::new(&["ID", "ADD"], IdentRange::Brackets);
+    let indicator_closures = Indicators::new(&["REF", "END"], IdentRange::Closures);
+    indicators.push(indicator_brackets);
+    indicators.push(indicator_closures);
+    let mut curt = YogurtYaml::new(&indicators);
+    let test_data = "other stuff ID[Test, \nTestContent: \"3\"] more\n REF{Test2, \nTestContent: [4]\n} stuADD[Test3, TestContent: [[a,7],[a,d]]]".repeat(5);
+    c.bench_function("YogurtYaml.curt(multi)", |b| {
         b.iter(|| curt.curt(black_box(&test_data)))
     });
 }
