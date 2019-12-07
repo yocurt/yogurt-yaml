@@ -42,15 +42,21 @@ pub struct Indicators<'a> {
     range: IdentRange,
 }
 
+impl<'a> Indicators<'a> {
+    pub fn new(idents: &'a [&'a str], range: IdentRange) -> Indicators<'a> {
+        Indicators { idents, range }
+    }
+}
+
 /// Implements YogurtYaml functions
 impl<'a> YogurtYaml<'a> {
     /// Create a new curt instance
-    pub fn new(indicatorLists: &'a [Indicators]) -> YogurtYaml<'a> {
+    pub fn new(indicator_lists: &'a [Indicators]) -> YogurtYaml<'a> {
         let mut ident_checks = Vec::new();
-        for indicatorList in indicatorLists {
+        for indicator_list in indicator_lists {
             ident_checks.extend(create_ident_checks(
-                indicatorList.idents,
-                indicatorList.range,
+                indicator_list.idents,
+                indicator_list.range,
             ));
         }
         let results = Vec::new();
@@ -261,10 +267,6 @@ fn create_ident_checks<'a>(idents: &'a [&'a str], range: IdentRange) -> Vec<Iden
     let end_char;
 
     match range {
-        IdentRange::Word => {
-            begin_char = ' ';
-            end_char = ' ';
-        }
         IdentRange::Closures => {
             begin_char = '{';
             end_char = '}';
@@ -280,6 +282,9 @@ fn create_ident_checks<'a>(idents: &'a [&'a str], range: IdentRange) -> Vec<Iden
         IdentRange::Rounds => {
             begin_char = '(';
             end_char = ')';
+        }
+        IdentRange::Word => {
+            unimplemented!();
         }
     }
 
