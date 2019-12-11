@@ -148,6 +148,7 @@ impl<'a> YogurtYaml<'a> {
 
 /// Enables extraction of yaml data defined by identifiers and closures
 struct IdentChecker<'a> {
+    range: IdentRange,
     ident: &'a str,
     first_char: char,
     begin_char: char,
@@ -267,15 +268,17 @@ pub fn cut_yaml_ident_strings(ident_strings: &[&str], s: &str) -> Vec<Result> {
 fn check_ident_checks(ident_checks: &mut Vec<IdentChecker>, s: &str, results: &mut Vec<Result>) {
     for ident_check in ident_checks {
         ident_check.length += 1;
-        if ident_check.semantic_position == SemanticPosition::Done {
+        if ident_check.semantic_position == SemanticPosition::Done
+            || ident_check.range == IdentRange::Tag
+        {
             add_result(results, ident_check, s, s.len());
         }
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum IdentRange {
-    Word,
+    Tag,
     Brackets,
     Closures,
     Crickets,
@@ -304,13 +307,15 @@ fn create_ident_checks<'a>(ident_strings: &'a [&'a str], range: IdentRange) -> V
             begin_char = '(';
             end_char = ')';
         }
-        IdentRange::Word => {
-            unimplemented!();
+        IdentRange::Tag => {
+            begin_char = ':';
+            end_char = '\n';
         }
     }
 
     for ident in ident_strings {
         ident_checks.push(IdentChecker {
+            range,
             ident,
             first_char: ident.chars().nth(0).unwrap(),
             begin_char,
@@ -325,35 +330,86 @@ fn create_ident_checks<'a>(ident_strings: &'a [&'a str], range: IdentRange) -> V
 
 fn cut_yaml(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
     let mut results = Vec::new();
+    results.append(&mut cut_identifiers(ident_checks, s));
+    results.append(&mut cut_tags(ident_checks, s));
+    results
+}
+
+fn cut_identifiers(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
+    let mut results = Vec::new();
+
+    // TODO: Use only partial list of ident_checks
+
     for (i, c) in s.chars().enumerate() {
         for ident_check in &mut *ident_checks {
-            ident_check.length += 1;
-            match ident_check.semantic_position {
-                SemanticPosition::Out => {
-                    check_out(ident_check, c);
+            if ident_check.range != IdentRange::Tag {
+                ident_check.length += 1;
+                match ident_check.semantic_position {
+                    SemanticPosition::Out => {
+                        check_out(ident_check, c);
+                    }
+                    SemanticPosition::Ident => {
+                        check_ident(ident_check, c);
+                    }
+                    SemanticPosition::In => {
+                        check_in(ident_check, c);
+                    }
+                    SemanticPosition::InSingleQuote => {
+                        check_single_quote(ident_check, c);
+                    }
+                    SemanticPosition::InDoubleQuote => {
+                        check_double_quote(ident_check, c);
+                    }
+                    SemanticPosition::InSingleQuoteEscaped => {
+                        ident_check.semantic_position = SemanticPosition::InSingleQuote;
+                    }
+                    SemanticPosition::InDoubleQuoteEscaped => {
+                        ident_check.semantic_position = SemanticPosition::InDoubleQuote;
+                    }
+                    SemanticPosition::Done => {
+                        add_result(&mut results, ident_check, s, i);
+                        reset(ident_check);
+                        check_out(ident_check, c);
+                    }
                 }
-                SemanticPosition::Ident => {
-                    check_ident(ident_check, c);
-                }
-                SemanticPosition::In => {
-                    check_in(ident_check, c);
-                }
-                SemanticPosition::InSingleQuote => {
-                    check_single_quote(ident_check, c);
-                }
-                SemanticPosition::InDoubleQuote => {
-                    check_double_quote(ident_check, c);
-                }
-                SemanticPosition::InSingleQuoteEscaped => {
-                    ident_check.semantic_position = SemanticPosition::InSingleQuote;
-                }
-                SemanticPosition::InDoubleQuoteEscaped => {
-                    ident_check.semantic_position = SemanticPosition::InDoubleQuote;
-                }
-                SemanticPosition::Done => {
-                    add_result(&mut results, ident_check, s, i);
-                    reset(ident_check);
-                    check_out(ident_check, c);
+            }
+        }
+    }
+    results
+}
+
+fn cut_tags(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
+    // TODO: Use only partial list of ident_checks
+    let mut results = Vec::new();
+    for (i, c) in s.chars().enumerate() {
+        for ident_check in &mut *ident_checks {
+            if ident_check.range == IdentRange::Tag {
+                ident_check.length += 1;
+                match ident_check.semantic_position {
+                    SemanticPosition::Out => {
+                        check_out(ident_check, c);
+                    }
+                    SemanticPosition::Ident => {
+                        if c == ident_check.begin_char {
+                            ident_check.semantic_position = SemanticPosition::In;
+                        } else if c == ' ' || c == '\n' || c == ',' || c == '.' {
+                            ident_check.semantic_position = SemanticPosition::Done;
+                        } else if c == ident_check.first_char {
+                            ident_check.length = 1;
+                            ident_check.semantic_position = SemanticPosition::Ident;
+                        }
+                    }
+                    SemanticPosition::In => {
+                        if c == ident_check.end_char {
+                            ident_check.semantic_position = SemanticPosition::Done;
+                        }
+                    }
+                    SemanticPosition::Done => {
+                        add_result(&mut results, ident_check, s, i);
+                        reset(ident_check);
+                        check_out(ident_check, c);
+                    }
+                    _ => unreachable!(),
                 }
             }
         }
@@ -456,10 +512,10 @@ mod tests {
 
     #[test]
     fn test_cut_yaml_ident_strings_escaped() {
-        let result = cut_yaml_ident_strings(&["ID", "REF", "ADD"], &r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string());
+        let result = cut_yaml_ident_strings(&["ID", "REF", "ADD"], &"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: [\"4\"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff".to_string());
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].text, r#"{ID: Test, \nTestContent: ']3]]'}"#);
-        assert_eq!(result[1].text, r#"{REF: Test2, \nTestContent: ["4"]\n}"#);
+        assert_eq!(result[0].text, "{ID: Test, \nTestContent: ']3]]'}");
+        assert_eq!(result[1].text, "{REF: Test2, \nTestContent: [\"4\"]\n}");
         assert_eq!(
             result[2].text,
             r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
@@ -479,7 +535,7 @@ mod tests {
     use crate::YogurtYaml;
     #[test]
     fn test_curt() {
-        let test_data = &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string();
+        let test_data = &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string(); //FIXME: Should work without 'ff' at the end
         let mut curt = YogurtYaml::new_from_str(&["ID", "REF", "ADD"]);
         let result = curt.get_results();
         assert_eq!(result.len(), 0);
@@ -491,6 +547,26 @@ mod tests {
             result[2].text,
             r#"{ADD: Test3, TestContent: [[a,7],[a,d]]}"#
         );
+    }
+
+    use crate::IdentRange;
+    use crate::Indicators;
+    #[test]
+    fn test_tags() {
+        let test_data =
+            &mut "other stuff #Test,\n @more\n\n #Test2 @TestContent: more content\n\n".to_string();
+        let mut indicator_lists = Vec::new();
+        indicator_lists.push(Indicators::new(&["#", "@"], IdentRange::Tag));
+        let mut curt = YogurtYaml::new(&indicator_lists);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 0);
+        curt.curt(test_data);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 4);
+        assert_eq!(result[0].text, r#"{#Test}"#);
+        assert_eq!(result[1].text, r#"{@more}"#);
+        assert_eq!(result[2].text, r#"{#Test2}"#);
+        assert_eq!(result[3].text, r#"{@TestContent:  more content}"#);
     }
 
     #[test]

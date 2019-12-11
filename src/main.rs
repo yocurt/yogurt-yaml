@@ -38,12 +38,12 @@ fn main() {
     let mut closures = String::new();
     let mut crickets = String::new();
     let mut rounds = String::new();
-    let mut words = String::new();
+    let mut tags = String::new();
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("Extract yaml from text via pipe e.g. `cat file | curt-extract -b ID`");
-        ap.refer(&mut words).add_option(
-            &["--words", "-w"],
+        ap.refer(&mut tags).add_option(
+            &["--tags", "-t"],
             Store,
             "Get words defined by an identifier [NOT YET IMPLEMENTED]",
         );
@@ -69,8 +69,8 @@ fn main() {
         );
         ap.parse_args_or_exit();
     }
-    // let idents = words.split_whitespace().collect::<Vec<&str>>();
-    // let word_indicators = Indicators::new(&idents, IdentRange::Word);
+    let idents = tags.split_whitespace().collect::<Vec<&str>>();
+    let tags_indicators = Indicators::new(&idents, IdentRange::Tag);
     let idents = brackets.split_whitespace().collect::<Vec<&str>>();
     let brackets_indicators = Indicators::new(&idents, IdentRange::Brackets);
     let idents = closures.split_whitespace().collect::<Vec<&str>>();
@@ -80,7 +80,7 @@ fn main() {
     let idents = closures.split_whitespace().collect::<Vec<&str>>();
     let rounds_indicators = Indicators::new(&idents, IdentRange::Rounds);
     let mut indicators = Vec::new();
-    // indicators.push(word_indicators);
+    indicators.push(tags_indicators);
     indicators.push(brackets_indicators);
     indicators.push(closures_indicators);
     indicators.push(crickets_indicators);
