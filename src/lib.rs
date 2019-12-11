@@ -209,6 +209,17 @@ fn check_ident(ident_check: &mut IdentChecker, c: char) {
     }
 }
 
+fn check_ident_tag(ident_check: &mut IdentChecker, c: char) {
+    if c == ident_check.begin_char {
+        ident_check.semantic_position = SemanticPosition::In;
+    } else if c == ' ' || c == '\n' || c == ',' || c == '.' {
+        ident_check.semantic_position = SemanticPosition::Done;
+    } else if c == ident_check.first_char {
+        ident_check.length = 1;
+        ident_check.semantic_position = SemanticPosition::Ident;
+    }
+}
+
 fn check_in(ident_check: &mut IdentChecker, c: char) {
     let begin = ident_check.begin_char;
     let end = ident_check.end_char;
@@ -329,87 +340,48 @@ fn create_ident_checks<'a>(ident_strings: &'a [&'a str], range: IdentRange) -> V
 }
 
 fn cut_yaml(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
-    let mut results = Vec::new();
-    results.append(&mut cut_identifiers(ident_checks, s));
-    results.append(&mut cut_tags(ident_checks, s));
-    results
+    cut_identifiers(ident_checks, s)
 }
 
 fn cut_identifiers(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
     let mut results = Vec::new();
-
-    // TODO: Use only partial list of ident_checks
-
     for (i, c) in s.chars().enumerate() {
         for ident_check in &mut *ident_checks {
-            if ident_check.range != IdentRange::Tag {
-                ident_check.length += 1;
-                match ident_check.semantic_position {
-                    SemanticPosition::Out => {
-                        check_out(ident_check, c);
-                    }
-                    SemanticPosition::Ident => {
+            ident_check.length += 1;
+            match ident_check.semantic_position {
+                SemanticPosition::Out => {
+                    check_out(ident_check, c);
+                }
+                SemanticPosition::Ident => {
+                    if ident_check.range == IdentRange::Tag {
+                        check_ident_tag(ident_check, c);
+                    } else {
                         check_ident(ident_check, c);
                     }
-                    SemanticPosition::In => {
+                }
+                SemanticPosition::In => {
+                    if c == ident_check.end_char && ident_check.range == IdentRange::Tag {
+                        ident_check.semantic_position = SemanticPosition::Done;
+                    } else {
                         check_in(ident_check, c);
                     }
-                    SemanticPosition::InSingleQuote => {
-                        check_single_quote(ident_check, c);
-                    }
-                    SemanticPosition::InDoubleQuote => {
-                        check_double_quote(ident_check, c);
-                    }
-                    SemanticPosition::InSingleQuoteEscaped => {
-                        ident_check.semantic_position = SemanticPosition::InSingleQuote;
-                    }
-                    SemanticPosition::InDoubleQuoteEscaped => {
-                        ident_check.semantic_position = SemanticPosition::InDoubleQuote;
-                    }
-                    SemanticPosition::Done => {
-                        add_result(&mut results, ident_check, s, i);
-                        reset(ident_check);
-                        check_out(ident_check, c);
-                    }
                 }
-            }
-        }
-    }
-    results
-}
-
-fn cut_tags(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
-    // TODO: Use only partial list of ident_checks
-    let mut results = Vec::new();
-    for (i, c) in s.chars().enumerate() {
-        for ident_check in &mut *ident_checks {
-            if ident_check.range == IdentRange::Tag {
-                ident_check.length += 1;
-                match ident_check.semantic_position {
-                    SemanticPosition::Out => {
-                        check_out(ident_check, c);
-                    }
-                    SemanticPosition::Ident => {
-                        if c == ident_check.begin_char {
-                            ident_check.semantic_position = SemanticPosition::In;
-                        } else if c == ' ' || c == '\n' || c == ',' || c == '.' {
-                            ident_check.semantic_position = SemanticPosition::Done;
-                        } else if c == ident_check.first_char {
-                            ident_check.length = 1;
-                            ident_check.semantic_position = SemanticPosition::Ident;
-                        }
-                    }
-                    SemanticPosition::In => {
-                        if c == ident_check.end_char {
-                            ident_check.semantic_position = SemanticPosition::Done;
-                        }
-                    }
-                    SemanticPosition::Done => {
-                        add_result(&mut results, ident_check, s, i);
-                        reset(ident_check);
-                        check_out(ident_check, c);
-                    }
-                    _ => unreachable!(),
+                SemanticPosition::InSingleQuote => {
+                    check_single_quote(ident_check, c);
+                }
+                SemanticPosition::InDoubleQuote => {
+                    check_double_quote(ident_check, c);
+                }
+                SemanticPosition::InSingleQuoteEscaped => {
+                    ident_check.semantic_position = SemanticPosition::InSingleQuote;
+                }
+                SemanticPosition::InDoubleQuoteEscaped => {
+                    ident_check.semantic_position = SemanticPosition::InDoubleQuote;
+                }
+                SemanticPosition::Done => {
+                    add_result(&mut results, ident_check, s, i);
+                    reset(ident_check);
+                    check_out(ident_check, c);
                 }
             }
         }
