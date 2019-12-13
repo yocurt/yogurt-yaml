@@ -259,7 +259,11 @@ fn check_end(ident_check: &mut IdentChecker) {
 
 fn add_result(results: &mut Vec<Result>, ident_check: &mut IdentChecker, s: &str, i: usize) {
     let end = i - 1;
-    let length = ident_check.length.checked_sub(2).unwrap(); // TODO: Minus 2 is a bit odd ..
+    let length;
+    match ident_check.length.checked_sub(2) {
+        Some(a) => length = a,
+        None => length = 0,
+    }; // TODO: Minus 2 is a bit odd ..
     let start = end.checked_sub(length).unwrap();
 
     let mut text: String = s.chars().skip(start).take(length).collect();
@@ -271,16 +275,15 @@ fn add_result(results: &mut Vec<Result>, ident_check: &mut IdentChecker, s: &str
 
 pub fn cut_yaml_ident_strings(ident_strings: &[&str], s: &str) -> Vec<Result> {
     let mut ident_checks = create_ident_checks(ident_strings, IdentRange::Brackets);
-    let mut results = cut_yaml(&mut ident_checks, s);
-    check_ident_checks(&mut ident_checks, s, &mut results);
-    results
+    cut_yaml(&mut ident_checks, s)
 }
 
 fn check_ident_checks(ident_checks: &mut Vec<IdentChecker>, s: &str, results: &mut Vec<Result>) {
     for ident_check in ident_checks {
         ident_check.length += 1;
         if ident_check.semantic_position == SemanticPosition::Done
-            || ident_check.range == IdentRange::Tag
+            || (ident_check.range == IdentRange::Tag
+                && ident_check.semantic_position != SemanticPosition::Out)
         {
             add_result(results, ident_check, s, s.len());
         }
@@ -340,7 +343,9 @@ fn create_ident_checks<'a>(ident_strings: &'a [&'a str], range: IdentRange) -> V
 }
 
 fn cut_yaml(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
-    cut_identifiers(ident_checks, s)
+    let mut results = cut_identifiers(ident_checks, s);
+    check_ident_checks(ident_checks, s, &mut results);
+    results
 }
 
 fn cut_identifiers(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
@@ -507,7 +512,7 @@ mod tests {
     use crate::YogurtYaml;
     #[test]
     fn test_curt() {
-        let test_data = &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]ff"#.to_string(); //FIXME: Should work without 'ff' at the end
+        let test_data = &mut r#"other stuff ID[Test, \nTestContent: ']3]]'] more\n REF[Test2, \nTestContent: ["4"]\n] stuADD[Test3, TestContent: [[a,7],[a,d]]]"#.to_string();
         let mut curt = YogurtYaml::new_from_str(&["ID", "REF", "ADD"]);
         let result = curt.get_results();
         assert_eq!(result.len(), 0);
@@ -526,7 +531,7 @@ mod tests {
     #[test]
     fn test_tags() {
         let test_data =
-            &mut "other stuff #Test,\n @more\n\n #Test2 @TestContent: more content\n\n".to_string();
+            &mut "other stuff #Test,\n @more\n\n #Test2 @TestContent: more content\n".to_string();
         let mut indicator_lists = Vec::new();
         indicator_lists.push(Indicators::new(&["#", "@"], IdentRange::Tag));
         let mut curt = YogurtYaml::new(&indicator_lists);

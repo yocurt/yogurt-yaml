@@ -45,7 +45,7 @@ fn main() {
         ap.refer(&mut tags).add_option(
             &["--tags", "-t"],
             Store,
-            "Get words defined by an identifier [NOT YET IMPLEMENTED]",
+            "Get tags defined by an single char identifier e.g. `#` or `@`",
         );
         ap.refer(&mut brackets).add_option(
             &["--brackets", "-b"],
