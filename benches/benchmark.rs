@@ -29,7 +29,7 @@ fn criterion_benchmark_curt_multi_tags(c: &mut Criterion) {
     indicators.push(indicator_tags);
     let mut curt = YogurtYaml::new(&indicators);
     let test_data = "other @stuff ID[Test, \nTestContent: \"3\"] more\n REF{Test2, \nTestContent: [4]\n} #stu ADD[Test3, TestContent: [[a,7],[a,d]]]".repeat(5);
-    c.bench_function("YogurtYaml.curt(multi)", |b| {
+    c.bench_function("YogurtYaml.curt(tags)", |b| {
         b.iter(|| curt.curt(black_box(&test_data)))
     });
 }
