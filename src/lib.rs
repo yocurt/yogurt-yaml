@@ -214,7 +214,11 @@ fn check_ident_tag(ident_check: &mut IdentChecker, c: char) {
     if c == ident_check.begin_char {
         ident_check.semantic_position = SemanticPosition::In;
     } else if c == ' ' || c == '\n' || c == ',' || c == '.' {
-        ident_check.semantic_position = SemanticPosition::Done;
+        if ident_check.length > 2 {
+            ident_check.semantic_position = SemanticPosition::Done;
+        } else {
+            reset(ident_check);
+        }
     } else if c == ident_check.first_char {
         ident_check.length = 1;
         ident_check.semantic_position = SemanticPosition::Ident;
@@ -545,6 +549,19 @@ mod tests {
         assert_eq!(result[1].text, r#"{@more}"#);
         assert_eq!(result[2].text, r#"{#Test2}"#);
         assert_eq!(result[3].text, r#"{@TestContent:  more content}"#);
+    }
+
+    #[test]
+    fn test_tags_empty() {
+        let test_data =
+            &mut "other stuff # Test,\n @ more\n\n ## Test2 @@ TestContent: more content\n"
+                .to_string();
+        let mut indicator_lists = Vec::new();
+        indicator_lists.push(Indicators::new(&["#", "@"], IdentRange::Tag));
+        let mut curt = YogurtYaml::new(&indicator_lists);
+        curt.curt_clear(test_data);
+        let result = curt.get_results();
+        assert_eq!(result.len(), 0);
     }
 
     #[test]
