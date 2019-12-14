@@ -54,6 +54,7 @@ criterion_group!(
     benches,
     criterion_benchmark_curt_1,
     criterion_benchmark_curt_5,
-    criterion_benchmark_curt_multi
+    criterion_benchmark_curt_multi,
+    criterion_benchmark_curt_multi_tags
 );
 criterion_main!(benches);
