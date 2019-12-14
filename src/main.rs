@@ -17,7 +17,7 @@ fn pipe_data(mut curt: YogurtYaml) {
 
     while let Ok(n_bytes) = stdin.read_to_string(&mut line) {
         if n_bytes == 0 {
-            break;
+            line.push('\n');
         }
 
         curt.curt(&line);
@@ -28,6 +28,10 @@ fn pipe_data(mut curt: YogurtYaml) {
             }
             curt.clear_results();
             line.clear();
+        }
+
+        if n_bytes == 0 {
+            break;
         }
     }
 }

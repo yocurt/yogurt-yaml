@@ -94,7 +94,8 @@ impl<'a> YogurtYaml<'a> {
     // ID[IMPL::Multiline_Support, implements: REQ::Multi_Line]
     /// Extract yaml from string
     pub fn curt(&mut self, s: &str) {
-        self.results.extend(cut_yaml(&mut self.ident_checks, s));
+        self.results
+            .extend(cut_yaml_unchecked(&mut self.ident_checks, s));
     }
 
     /// Extracts yaml and clears string if not open
@@ -343,12 +344,12 @@ fn create_ident_checks<'a>(ident_strings: &'a [&'a str], range: IdentRange) -> V
 }
 
 fn cut_yaml(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
-    let mut results = cut_identifiers(ident_checks, s);
+    let mut results = cut_yaml_unchecked(ident_checks, s);
     check_ident_checks(ident_checks, s, &mut results);
     results
 }
 
-fn cut_identifiers(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
+fn cut_yaml_unchecked(ident_checks: &mut Vec<IdentChecker>, s: &str) -> Vec<Result> {
     let mut results = Vec::new();
     for (i, c) in s.chars().enumerate() {
         for ident_check in &mut *ident_checks {
@@ -537,7 +538,7 @@ mod tests {
         let mut curt = YogurtYaml::new(&indicator_lists);
         let result = curt.get_results();
         assert_eq!(result.len(), 0);
-        curt.curt(test_data);
+        curt.curt_clear(test_data);
         let result = curt.get_results();
         assert_eq!(result.len(), 4);
         assert_eq!(result[0].text, r#"{#Test}"#);
@@ -554,7 +555,7 @@ mod tests {
         let mut curt = YogurtYaml::new_from_str(&["ID", "REF", "ADD"]);
         let result = curt.get_results();
         assert_eq!(result.len(), 0);
-        curt.curt_clear(test_data_part_a);
+        curt.curt(test_data_part_a);
         let result = curt.get_results();
         assert_eq!(result.len(), 1);
         curt.curt_clear(test_data_part_b);
