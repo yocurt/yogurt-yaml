@@ -23,7 +23,7 @@ fn criterion_benchmark_curt_multi_tags(c: &mut Criterion) {
     let mut indicators = Vec::new();
     let indicator_brackets = Indicators::new(&["ID", "ADD"], IdentRange::Brackets);
     let indicator_closures = Indicators::new(&["REF", "END"], IdentRange::Closures);
-    let indicator_tags = Indicators::new(&["#", "@"], IdentRange::Tags);
+    let indicator_tags = Indicators::new(&["#", "@"], IdentRange::Tag);
     indicators.push(indicator_brackets);
     indicators.push(indicator_closures);
     indicators.push(indicator_tags);
