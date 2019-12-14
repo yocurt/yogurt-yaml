@@ -8,7 +8,7 @@ This package allows the user to extract yaml from yogurt files, where yogurt fil
 
 ## Usage
 
-There is a lib and a executable, which can be used to extract yaml content specified by e.g.: `ID[.*]`, `REF[.*]`, `ADD[.*]` or `END[.*]`.
+There is a lib and a executable, which can be used to extract yaml content specified by e.g.: `ID[.*]`, `REF[.*]`, `ADD[.*]` or `END[.*]`. Or via tags e.g.: `#tag: content\n` or `@name`
 
 ### Pipe file.md
 
@@ -29,7 +29,7 @@ REF[NAME, attribute: value, other_attribute: other_value]
 ### Into curt-extract
 
 ``` bash
- cat file.md | curt-extract -b "ID REF" > result.yaml
+ cat file.md | curt-extract -b "ID REF" -t "@ #" > result.yaml
 ```
 
 ### Returns result.yaml
@@ -54,5 +54,5 @@ cat file | curt-extract -b ID
 Other commandline tools can be used to extend the functionality.
 
 ``` bash
-cat **/*.adoc | curt-extract -b ID | yaml json write - | less
+cat **/*.adoc | curt-extract -b "ID REF" -t "@ #" | yaml json write - | less
 ```
