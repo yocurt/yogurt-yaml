@@ -35,6 +35,18 @@ impl Result {
     pub fn get_yaml(&self) -> Vec<Yaml> {
         YamlLoader::load_from_str(&self.text).unwrap()
     }
+
+    pub fn get_start(&self) -> usize {
+        self.start
+    }
+
+    pub fn get_end(&self) -> usize {
+        self.end
+    }
+
+    pub fn new(text: String, start: usize, end: usize) -> Result {
+        Result { text, start, end }
+    }
 }
 
 pub struct Indicators<'a> {
